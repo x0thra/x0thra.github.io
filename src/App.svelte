@@ -218,7 +218,7 @@
       {#each failedLogins as failedUser}
         <div class="flex flex-col mb-1">
           <span>x0thra-server login: {failedUser}</span>
-          <span class="text-gray-400">Login incorrect</span>
+          <span class="text-gray-400">Login incorrect (this is not a real server login. just type your own username)</span>
         </div>
       {/each}
 
