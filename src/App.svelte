@@ -125,8 +125,6 @@
       loginInputEl.focus();
     }
 
-    // --- ANTI-DEVTOOLS PROTECTION ---
-    // Ceza Sistemi: Sayfayı silip mesaj gösterir, sonra sekmeyi kapatır
     const triggerPunishment = () => {
       const messages = [
         "no.", 
@@ -149,15 +147,13 @@
       `;
       
       setTimeout(() => {
-        window.close(); // Sadece script ile açılan pencerelerde çalışır
-        window.location.href = "about:blank"; // Kapatamazsa boş sayfaya yönlendirir
+        window.close();
+        window.location.href = "about:blank";
       }, 500);
     };
 
-    // 1. Sağ tık engelleme (Sağ tıka da ceza verebiliriz ama belki yanlışlıkla basarlar diye sadece engelliyoruz)
     document.addEventListener('contextmenu', e => e.preventDefault());
 
-    // 2. Klavye Kısayolları (F12, İncele, View Source) basıldığı an cezayı keser!
     document.addEventListener('keydown', e => {
       if (
         e.key === 'F12' || 
@@ -170,7 +166,6 @@
       }
     });
 
-    // 3. DevTools Boyut Tuzağı (Event ve Polling tabanlı, debugger YOK)
     const detectDevTools = () => {
       const widthDiff = window.outerWidth - window.innerWidth;
       const heightDiff = window.outerHeight - window.innerHeight;
@@ -179,10 +174,7 @@
       }
     };
     
-    // Pencere yeniden boyutlandırıldığında (DevTools açılırken) anında tetikle
     window.addEventListener('resize', detectDevTools);
-    
-    // Her ihtimale karşı sessizce arkada kontrol et
     setInterval(detectDevTools, 500);
   });
 
