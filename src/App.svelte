@@ -6,6 +6,7 @@
   let loginInput = '';
   let loginInputEl;
   let username = 'guest';
+  let failedLogins = [];
 
   $: loginInput = loginInput.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 20);
 
@@ -29,7 +30,23 @@
     const trimmedUser = loginInput.trim();
     if (!trimmedUser) return;
     
-    username = trimmedUser.toLowerCase().replace(/\s+/g, '_');
+    const candidateUsername = trimmedUser.toLowerCase().replace(/\s+/g, '_');
+    
+    // Yasaklı kullanıcı isimleri
+    const forbiddenNames = ['root', 'admin', 'administrator', 'x0thra', 'system', 'sysadmin'];
+    
+    if (forbiddenNames.includes(candidateUsername)) {
+      isLoggingIn = true; // Şifre doğruluyormuş gibi yap
+      setTimeout(() => {
+        isLoggingIn = false;
+        failedLogins = [...failedLogins, candidateUsername];
+        loginInput = '';
+        setTimeout(() => focusInput(), 50);
+      }, 1200); // 1.2 saniye gecikme
+      return;
+    }
+
+    username = candidateUsername;
     isLoggingIn = true;
 
     if (DISCORD_WEBHOOK_URL && DISCORD_WEBHOOK_URL !== 'YOUR_DISCORD_WEBHOOK_URL_HERE') {
@@ -198,6 +215,13 @@
     <div class="max-w-3xl">
       <p class="mb-4 text-gray-400">Arch Linux 7.0.5-arch1-1 (tty1)</p>
       
+      {#each failedLogins as failedUser}
+        <div class="flex flex-col mb-1">
+          <span>x0thra-server login: {failedUser}</span>
+          <span class="text-gray-400">Login incorrect</span>
+        </div>
+      {/each}
+
       {#if !isLoggingIn}
         <div class="flex items-center">
           <span class="mr-2">x0thra-server login:</span>
