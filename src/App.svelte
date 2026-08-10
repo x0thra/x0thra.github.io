@@ -210,6 +210,10 @@
   };
 </script>
 
+<svelte:head>
+  <title>{isLoggedIn ? `${username}@x0thra:~` : "x0thra's page"}</title>
+</svelte:head>
+
 {#if !isLoggedIn}
   <main class="min-h-screen bg-black text-gray-300 font-mono p-6 cursor-text" on:click={focusInput} aria-hidden="true">
     <div class="max-w-3xl">
