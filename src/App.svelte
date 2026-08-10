@@ -45,7 +45,7 @@
     setTimeout(() => {
       isLoggedIn = true;
       commandHistory = [
-        { type: 'output', text: `Welcome to x0thra archive, ${username}.\nType "help" to see available commands.` }
+        { type: 'output', text: `Welcome to my page, ${username}.\nType "help" to see available commands.` }
       ];
       setTimeout(() => focusInput(), 100);
     }, 800);
