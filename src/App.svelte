@@ -68,17 +68,25 @@
       const nums = '0123456789';
       const characters = (katakana + latin + nums).split('');
       
-      const fontSize = 16;
-      const columns = matrixCanvas.width / fontSize;
+      const fontSize = 24; // Daha büyük ve okunaklı font
+      const columns = Math.floor(matrixCanvas.width / fontSize);
       const drops = [];
+      const speeds = [];
       for (let x = 0; x < columns; x++) {
         drops[x] = Math.random() * -100; // Start off-screen randomly
+        speeds[x] = Math.random() * 0.5 + 0.2; // Sütunlara rastgele hız
       }
       
-      const speed = 0.15; // Çok daha yavaş ve sinematik düşme hızı
+      let lastDrawTime = 0;
       
-      const draw = () => {
+      const draw = (time) => {
         if (!isMatrixMode) return;
+        requestAnimationFrame(draw);
+        
+        // Anti-aliasing bulanıklığını önlemek ve akıcılığı korumak için 30 FPS limiti
+        if (time - lastDrawTime < 33) return; 
+        lastDrawTime = time;
+
         ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
         ctx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
         
@@ -94,11 +102,11 @@
           
           if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
             drops[i] = 0;
+            speeds[i] = Math.random() * 0.5 + 0.2;
           } else {
-            drops[i] += speed;
+            drops[i] += speeds[i];
           }
         }
-        requestAnimationFrame(draw);
       };
       requestAnimationFrame(draw);
     }, 100);
