@@ -83,7 +83,7 @@
           }
           drops[i]++;
         }
-        requestAnimationFrame(draw);
+        setTimeout(() => requestAnimationFrame(draw), 50);
       };
       draw();
     }, 100);
