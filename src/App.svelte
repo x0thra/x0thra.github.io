@@ -61,53 +61,31 @@
       const ctx = matrixCanvas.getContext('2d');
       matrixCanvas.width = window.innerWidth;
       matrixCanvas.height = window.innerHeight;
-      
-      // Klasik ve göz aşinalığı olan Hiragana + Katakana + Latin harfleri (sayılar kaldırıldı)
-      const japanese = 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
-      const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      const characters = (japanese + latin).split('');
-      
-      const fontSize = 22; // İstediğiniz 22px boyutu
-      const columns = Math.floor(matrixCanvas.width / fontSize);
+      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+{}|:<>?~'.split('');
+      const fontSize = 16;
+      const columns = matrixCanvas.width / fontSize;
       const drops = [];
-      const speeds = [];
       for (let x = 0; x < columns; x++) {
-        drops[x] = Math.random() * -100; // Start off-screen randomly
-        speeds[x] = Math.random() * 0.5 + 0.2; // Sütunlara rastgele hız
+        drops[x] = 1;
       }
       
-      let lastDrawTime = 0;
-      
-      const draw = (time) => {
+      const draw = () => {
         if (!isMatrixMode) return;
-        requestAnimationFrame(draw);
-        
-        // Anti-aliasing bulanıklığını önlemek ve akıcılığı korumak için 30 FPS limiti
-        if (time - lastDrawTime < 33) return; 
-        lastDrawTime = time;
-
         ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
         ctx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
-        
         ctx.fillStyle = '#a78bfa';
         ctx.font = fontSize + 'px monospace';
-        
         for (let i = 0; i < drops.length; i++) {
-          if (drops[i] >= 0) {
-            const text = characters[Math.floor(Math.random() * characters.length)];
-            const y = Math.floor(drops[i]) * fontSize;
-            ctx.fillText(text, i * fontSize, y);
-          }
-          
+          const text = characters[Math.floor(Math.random() * characters.length)];
+          ctx.fillText(text, i * fontSize, drops[i] * fontSize);
           if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
             drops[i] = 0;
-            speeds[i] = Math.random() * 0.5 + 0.2;
-          } else {
-            drops[i] += speeds[i];
           }
+          drops[i]++;
         }
+        setTimeout(() => requestAnimationFrame(draw), 50);
       };
-      requestAnimationFrame(draw);
+      draw();
     }, 100);
   };
   
