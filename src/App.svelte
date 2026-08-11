@@ -307,8 +307,11 @@
   });
 
   afterUpdate(() => {
-    if (isLoggedIn && terminalContainer) {
-      terminalContainer.scrollTop = terminalContainer.scrollHeight;
+    if (isLoggedIn) {
+      if (terminalContainer) {
+        terminalContainer.scrollTop = terminalContainer.scrollHeight;
+      }
+      window.scrollTo(0, document.body.scrollHeight);
     }
   });
 
