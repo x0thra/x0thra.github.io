@@ -62,13 +62,12 @@
       matrixCanvas.width = window.innerWidth;
       matrixCanvas.height = window.innerHeight;
       
-      // Matrix orijinalindeki "half-width katakana" seti
-      const katakana = 'ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ';
+      // Klasik ve göz aşinalığı olan Hiragana + Katakana + Latin harfleri (sayılar kaldırıldı)
+      const japanese = 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
       const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      const nums = '0123456789';
-      const characters = (katakana + latin + nums).split('');
+      const characters = (japanese + latin).split('');
       
-      const fontSize = 24; // Daha büyük ve okunaklı font
+      const fontSize = 22; // İstediğiniz 22px boyutu
       const columns = Math.floor(matrixCanvas.width / fontSize);
       const drops = [];
       const speeds = [];
