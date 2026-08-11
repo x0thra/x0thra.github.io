@@ -63,29 +63,43 @@
       matrixCanvas.height = window.innerHeight;
       const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+{}|:<>?~'.split('');
       const fontSize = 16;
-      const columns = matrixCanvas.width / fontSize;
+      const columns = Math.floor(matrixCanvas.width / fontSize);
       const drops = [];
+      const speeds = [];
+      
       for (let x = 0; x < columns; x++) {
-        drops[x] = 1;
+        drops[x] = Math.random() * -(matrixCanvas.height / fontSize);
+        speeds[x] = Math.random() * 0.3 + 0.2;
       }
       
       const draw = () => {
         if (!isMatrixMode) return;
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        requestAnimationFrame(draw);
+        
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.07)';
         ctx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+        
         ctx.fillStyle = '#a78bfa';
         ctx.font = fontSize + 'px monospace';
+        
         for (let i = 0; i < drops.length; i++) {
-          const text = characters[Math.floor(Math.random() * characters.length)];
-          ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+          const currentY = Math.floor(drops[i]);
+          const nextY = Math.floor(drops[i] + speeds[i]);
+          
+          if (currentY !== nextY && nextY >= 0) {
+            const text = characters[Math.floor(Math.random() * characters.length)];
+            ctx.fillText(text, i * fontSize, nextY * fontSize);
+          }
+          
           if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
             drops[i] = 0;
+            speeds[i] = Math.random() * 0.3 + 0.2;
+          } else {
+            drops[i] += speeds[i];
           }
-          drops[i]++;
         }
-        setTimeout(() => requestAnimationFrame(draw), 50);
       };
-      draw();
+      requestAnimationFrame(draw);
     }, 100);
   };
   
