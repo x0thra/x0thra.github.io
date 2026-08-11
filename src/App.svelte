@@ -69,7 +69,7 @@
       
       for (let x = 0; x < columns; x++) {
         drops[x] = Math.random() * -(matrixCanvas.height / fontSize);
-        speeds[x] = Math.random() * 0.3 + 0.2;
+        speeds[x] = Math.random() * 0.1 + 0.05;
       }
       
       const draw = () => {
@@ -93,7 +93,7 @@
           
           if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
             drops[i] = 0;
-            speeds[i] = Math.random() * 0.3 + 0.2;
+            speeds[i] = Math.random() * 0.1 + 0.05;
           } else {
             drops[i] += speeds[i];
           }
