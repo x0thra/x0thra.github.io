@@ -61,31 +61,45 @@
       const ctx = matrixCanvas.getContext('2d');
       matrixCanvas.width = window.innerWidth;
       matrixCanvas.height = window.innerHeight;
-      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+{}|:<>?~'.split('');
+      
+      const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレゲゼデベペオォコソトノホモヨョロゴゾドボポヴッン';
+      const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      const nums = '0123456789';
+      const characters = (katakana + latin + nums).split('');
+      
       const fontSize = 16;
       const columns = matrixCanvas.width / fontSize;
       const drops = [];
       for (let x = 0; x < columns; x++) {
-        drops[x] = 1;
+        drops[x] = Math.random() * -100; // Start off-screen randomly
       }
+      
+      const speed = 0.4; // Akıcı ve yavaş düşme hızı
       
       const draw = () => {
         if (!isMatrixMode) return;
         ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
         ctx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+        
         ctx.fillStyle = '#a78bfa';
         ctx.font = fontSize + 'px monospace';
+        
         for (let i = 0; i < drops.length; i++) {
-          const text = characters[Math.floor(Math.random() * characters.length)];
-          ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+          if (drops[i] >= 0) {
+            const text = characters[Math.floor(Math.random() * characters.length)];
+            const y = Math.floor(drops[i]) * fontSize;
+            ctx.fillText(text, i * fontSize, y);
+          }
+          
           if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
             drops[i] = 0;
+          } else {
+            drops[i] += speed;
           }
-          drops[i]++;
         }
-        setTimeout(() => requestAnimationFrame(draw), 50);
+        requestAnimationFrame(draw);
       };
-      draw();
+      requestAnimationFrame(draw);
     }, 100);
   };
   
