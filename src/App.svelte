@@ -62,7 +62,8 @@
       matrixCanvas.width = window.innerWidth;
       matrixCanvas.height = window.innerHeight;
       
-      const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレゲゼデベペオォコソトノホモヨョロゴゾドボポヴッン';
+      // Matrix orijinalindeki "half-width katakana" seti
+      const katakana = 'ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ';
       const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
       const nums = '0123456789';
       const characters = (katakana + latin + nums).split('');
@@ -74,7 +75,7 @@
         drops[x] = Math.random() * -100; // Start off-screen randomly
       }
       
-      const speed = 0.4; // Akıcı ve yavaş düşme hızı
+      const speed = 0.15; // Çok daha yavaş ve sinematik düşme hızı
       
       const draw = () => {
         if (!isMatrixMode) return;
