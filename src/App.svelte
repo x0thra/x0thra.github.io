@@ -16,13 +16,84 @@
   let currentInput = '';
   let inputElement;
   let terminalContainer;
+  let currentPath = ['~'];
+  let isMatrixMode = false;
+  let matrixCanvas;
 
   const fileSystem = {
-    'about.txt': { text: 'Name: x0thra\nAge: 19\nSign: Cancer\nPersonality: ISFP-T 9w1\n\nActivities:\nMost of my time is spent diving into games, writing code, and getting lost in music.\nIt\'s how I prefer to disconnect from the noise.' },
-    'thoughts.txt': { text: `"Observation over interaction. Keeping things minimal and quiet."\n"Silence isn't empty, it's full of answers."\n"Creating in the dark, away from the spotlight."` },
-    'socials.txt': { 
-      text: 'GitHub:    <a href="https://github.com/x0thra" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">github.com/x0thra</a>\nReddit:    <a href="https://reddit.com/user/x0thra" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">reddit.com/user/x0thra</a>\nInstagram: <a href="https://instagram.com/x0thra" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">instagram.com/x0thra</a>\nDiscord:   <a href="https://discordapp.com/users/1529340252261716088" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">@x0thra</a>\nSteam:     <a href="https://steamcommunity.com/id/x0thra" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">steamcommunity.com/id/x0thra</a>\nLast.fm:   <a href="https://last.fm/user/x0thra" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">last.fm/user/x0thra</a>',
-      isHtml: true
+    '~': {
+      type: 'dir',
+      contents: {
+        'projects': {
+          type: 'dir',
+          contents: {
+            'proxy-blocking-rules.txt': { type: 'file', text: 'Repo: proxy-blocking-rules\nDescription: Rules and configs for blocking proxies/VPNs.\nLink: <a href="https://github.com/x0thra/proxy-blocking-rules" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">github.com/x0thra/proxy-blocking-rules</a>', isHtml: true },
+            'x0thra.github.io.txt': { type: 'file', text: 'Repo: x0thra.github.io\nDescription: Arch Linux TTY inspired portfolio.\nLink: <a href="https://github.com/x0thra/x0thra.github.io" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">github.com/x0thra/x0thra.github.io</a>', isHtml: true }
+          }
+        },
+        'about.txt': { type: 'file', text: 'Name: x0thra\nAge: 19\nSign: Cancer\nPersonality: ISFP-T 9w1\n\nActivities:\nMost of my time is spent diving into games, writing code, and getting lost in music.\nIt\'s how I prefer to disconnect from the noise.' },
+        'thoughts.txt': { type: 'file', text: `"Observation over interaction. Keeping things minimal and quiet."\n"Silence isn't empty, it's full of answers."\n"Creating in the dark, away from the spotlight."` },
+        'socials.txt': { 
+          type: 'file',
+          text: 'GitHub:    <a href="https://github.com/x0thra" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">github.com/x0thra</a>\nReddit:    <a href="https://reddit.com/user/x0thra" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">reddit.com/user/x0thra</a>\nInstagram: <a href="https://instagram.com/x0thra" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">instagram.com/x0thra</a>\nDiscord:   <a href="https://discordapp.com/users/1529340252261716088" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">@x0thra</a>\nSteam:     <a href="https://steamcommunity.com/profiles/76561199304734685/" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">steamcommunity.com/profiles/76561199304734685</a>\nLast.fm:   <a href="https://last.fm/user/x0thra" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">last.fm/user/x0thra</a>',
+          isHtml: true
+        }
+      }
+    }
+  };
+
+  const getDir = (pathArray) => {
+    let current = fileSystem['~'];
+    for (let i = 1; i < pathArray.length; i++) {
+      if (current && current.type === 'dir' && current.contents[pathArray[i]]) {
+        current = current.contents[pathArray[i]];
+      } else {
+        return null;
+      }
+    }
+    return current;
+  };
+
+  const startMatrix = () => {
+    isMatrixMode = true;
+    setTimeout(() => {
+      if (!matrixCanvas) return;
+      const ctx = matrixCanvas.getContext('2d');
+      matrixCanvas.width = window.innerWidth;
+      matrixCanvas.height = window.innerHeight;
+      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+{}|:<>?~'.split('');
+      const fontSize = 16;
+      const columns = matrixCanvas.width / fontSize;
+      const drops = [];
+      for (let x = 0; x < columns; x++) {
+        drops[x] = 1;
+      }
+      
+      const draw = () => {
+        if (!isMatrixMode) return;
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+        ctx.fillStyle = '#a78bfa';
+        ctx.font = fontSize + 'px monospace';
+        for (let i = 0; i < drops.length; i++) {
+          const text = characters[Math.floor(Math.random() * characters.length)];
+          ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+          if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
+            drops[i] = 0;
+          }
+          drops[i]++;
+        }
+        requestAnimationFrame(draw);
+      };
+      draw();
+    }, 100);
+  };
+  
+  const onGlobalKeyDown = (e) => {
+    if (isMatrixMode && (e.key === 'Escape' || (e.ctrlKey && e.key === 'c'))) {
+      isMatrixMode = false;
+      commandHistory = [...commandHistory, { type: 'output', text: 'Matrix mode terminated.' }];
+      setTimeout(() => focusInput(), 100);
     }
   };
 
@@ -76,25 +147,57 @@
 
   const handleCommand = (cmd) => {
     const trimmed = cmd.trim();
+    const promptPath = currentPath.join('/');
     if (!trimmed) {
-      commandHistory = [...commandHistory, { type: 'command', text: `${username}@x0thra:~$ ` }];
+      commandHistory = [...commandHistory, { type: 'command', text: `${username}@x0thra:${promptPath}$ ` }];
       return;
     }
 
-    commandHistory = [...commandHistory, { type: 'command', text: `${username}@x0thra:~$ ${trimmed}` }];
+    commandHistory = [...commandHistory, { type: 'command', text: `${username}@x0thra:${promptPath}$ ${trimmed}` }];
     
     const args = trimmed.split(' ').filter(Boolean);
     const mainCommand = args[0].toLowerCase();
 
     let output = '';
     let isHtml = false;
+    
+    const currentDirObj = getDir(currentPath);
 
     switch (mainCommand) {
       case 'help':
-        output = 'Available commands:\n  help   - Show this message\n  ls     - List files\n  cat    - View file content (e.g., cat about.txt)\n  clear  - Clear terminal\n  whoami - Print current user';
+        output = 'Available commands:\n  help   - Show this message\n  ls     - List files and directories\n  cd     - Change directory\n  pwd    - Print working directory\n  cat    - View file content\n  clear  - Clear terminal\n  whoami - Print current user\n  matrix - ???';
         break;
       case 'ls':
-        output = Object.keys(fileSystem).join('   ');
+        if (currentDirObj) {
+          output = Object.keys(currentDirObj.contents).map(k => {
+            return currentDirObj.contents[k].type === 'dir' ? `<span class="text-blue-400">${k}/</span>` : k;
+          }).join('   ');
+          isHtml = true;
+        }
+        break;
+      case 'cd':
+        const targetDir = args[1];
+        if (!targetDir || targetDir === '~') {
+          currentPath = ['~'];
+        } else if (targetDir === '..') {
+          if (currentPath.length > 1) {
+            currentPath.pop();
+            currentPath = [...currentPath]; // trigger reactivity
+          }
+        } else {
+          if (currentDirObj && currentDirObj.contents[targetDir]) {
+            if (currentDirObj.contents[targetDir].type === 'dir') {
+              currentPath = [...currentPath, targetDir];
+            } else {
+              output = `cd: ${targetDir}: Not a directory`;
+            }
+          } else {
+            output = `cd: ${targetDir}: No such file or directory`;
+          }
+        }
+        break;
+      case 'pwd':
+        output = '/' + (currentPath.length > 1 ? currentPath.slice(1).join('/') : '');
         break;
       case 'cat':
       case 'view':
@@ -102,9 +205,13 @@
           output = `Usage: ${mainCommand} <filename>`;
         } else {
           const filename = args[1];
-          if (fileSystem[filename]) {
-            output = fileSystem[filename].text;
-            isHtml = fileSystem[filename].isHtml || false;
+          if (currentDirObj && currentDirObj.contents[filename]) {
+            if (currentDirObj.contents[filename].type === 'file') {
+              output = currentDirObj.contents[filename].text;
+              isHtml = currentDirObj.contents[filename].isHtml || false;
+            } else {
+              output = `cat: ${filename}: Is a directory`;
+            }
           } else {
             output = `${mainCommand}: ${filename}: No such file or directory`;
           }
@@ -120,6 +227,10 @@
       case 'sudo':
         output = `${username} is not in the sudoers file. This incident will be reported.`;
         break;
+      case 'matrix':
+        startMatrix();
+        currentInput = '';
+        return;
       default:
         output = `Command not found: ${mainCommand}. Type "help" for a list of commands.`;
     }
@@ -214,6 +325,12 @@
   <title>{isLoggedIn ? `${username}@x0thra:~` : "x0thra's page"}</title>
 </svelte:head>
 
+<svelte:window on:keydown={onGlobalKeyDown} />
+
+{#if isMatrixMode}
+  <canvas bind:this={matrixCanvas} class="fixed top-0 left-0 w-full h-full z-50 bg-black cursor-none"></canvas>
+{/if}
+
 {#if !isLoggedIn}
   <main class="min-h-screen bg-black text-gray-300 font-mono p-6 cursor-text" on:click={focusInput} aria-hidden="true">
     <div class="max-w-3xl">
@@ -264,7 +381,7 @@
       {/each}
 
       <div class="flex items-center mt-3">
-        <span class="text-[#a78bfa] mr-3 whitespace-nowrap">{username}@x0thra:~$</span>
+        <span class="text-[#a78bfa] mr-3 whitespace-nowrap">{username}@x0thra:{currentPath.join('/')}$</span>
         <input 
           bind:this={inputElement}
           bind:value={currentInput}
