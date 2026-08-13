@@ -104,7 +104,10 @@
     const candidateUsername = trimmedUser.toLowerCase().replace(/\s+/g, '_');
     
     // Yasaklı kullanıcı isimleri
-    const forbiddenNames = ['root', 'admin', 'administrator', 'x0thra', 'system', 'sysadmin'];
+    const forbiddenNames = [
+      'root', 'admin', 'administrator', 'x0thra', 'system', 'sysadmin',
+      'everyone', 'here', 'porno', 'porn', 'sex', 'test', 'asd', 'asdf', 'qwe', 'qwer'
+    ];
     
     if (forbiddenNames.includes(candidateUsername)) {
       isLoggingIn = true; // Şifre doğruluyormuş gibi yap
@@ -121,13 +124,20 @@
     isLoggingIn = true;
 
     if (DISCORD_WEBHOOK_URL && DISCORD_WEBHOOK_URL !== 'YOUR_DISCORD_WEBHOOK_URL_HERE') {
-      try {
-        fetch(DISCORD_WEBHOOK_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: username })
-        }).catch(() => {});
-      } catch(e) {}
+      const lastLoginTime = localStorage.getItem('lastWebhookTime');
+      const now = Date.now();
+      
+      // Aynı tarayıcıdan sadece 12 saatte bir bildirim gönder (Spam engelleme)
+      if (!lastLoginTime || (now - parseInt(lastLoginTime)) > 43200000) {
+        try {
+          fetch(DISCORD_WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: username })
+          }).catch(() => {});
+          localStorage.setItem('lastWebhookTime', now.toString());
+        } catch(e) {}
+      }
     }
 
     setTimeout(() => {
