@@ -45,7 +45,7 @@
     { msg: "[  OK  ] Started User Login Management.", delay: 20 },
     { msg: "         Starting WPA supplicant...", delay: 300 },
     { msg: "[  OK  ] Started WPA supplicant.", delay: 10 },
-    { msg: "         Starting x0thra-os session...", delay: 800 },
+    { msg: "         Starting x0thra's page session...", delay: 800 },
     { msg: "[  OK  ] Session established.", delay: 20 }
   ];
 
@@ -240,7 +240,7 @@
       setTimeout(() => {
         isBooting = false;
         commandHistory = [
-          { type: 'output', text: `Welcome to x0thra-os.\nType "help" to see available commands.` }
+          { type: 'output', text: `Welcome to x0thra's page.\nType "help" to see available commands.` }
         ];
         setTimeout(() => focusInput(), 50);
       }, 500);
