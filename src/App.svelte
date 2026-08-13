@@ -97,73 +97,15 @@
     }
   };
 
-  const handleLogin = async () => {
-    const trimmedUser = loginInput.trim();
-    if (!trimmedUser) return;
-    
-    const candidateUsername = trimmedUser.toLowerCase().replace(/\s+/g, '_');
-    
-    // Yasaklı kullanıcı isimleri
-    const forbiddenNames = [
-      'root', 'admin', 'administrator', 'x0thra', 'system', 'sysadmin',
-      'everyone', 'here', 'porno', 'porn', 'sex', 'test', 'asd', 'asdf', 'qwe', 'qwer'
-    ];
-    
-    if (forbiddenNames.includes(candidateUsername)) {
-      isLoggingIn = true; // Şifre doğruluyormuş gibi yap
-      setTimeout(() => {
-        isLoggingIn = false;
-        failedLogins = [...failedLogins, candidateUsername];
-        loginInput = '';
-        setTimeout(() => focusInput(), 50);
-      }, 1200); // 1.2 saniye gecikme
-      return;
-    }
-
-    username = candidateUsername;
-    isLoggingIn = true;
-
-    if (DISCORD_WEBHOOK_URL && DISCORD_WEBHOOK_URL !== 'YOUR_DISCORD_WEBHOOK_URL_HERE') {
-      const lastLoginTime = localStorage.getItem('lastWebhookTime');
-      const now = Date.now();
-      
-      // Aynı tarayıcıdan sadece 12 saatte bir bildirim gönder (Spam engelleme)
-      if (!lastLoginTime || (now - parseInt(lastLoginTime)) > 43200000) {
-        try {
-          fetch(DISCORD_WEBHOOK_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: username })
-          }).catch(() => {});
-          localStorage.setItem('lastWebhookTime', now.toString());
-        } catch(e) {}
-      }
-    }
-
-    setTimeout(() => {
-      isLoggedIn = true;
-      commandHistory = [
-        { type: 'output', text: `Welcome to my page, ${username}.\nType "help" to see available commands.` }
-      ];
-      setTimeout(() => focusInput(), 100);
-    }, 800);
-  };
-
-  const onLoginKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      handleLogin();
-    }
-  };
-
   const handleCommand = (cmd) => {
     const trimmed = cmd.trim();
     const promptPath = currentPath.join('/');
     if (!trimmed) {
-      commandHistory = [...commandHistory, { type: 'command', text: `${username}@x0thra:${promptPath}$ ` }];
+      commandHistory = [...commandHistory, { type: 'command', text: `${username}@x0thra.github.io:${promptPath}$ ` }];
       return;
     }
 
-    commandHistory = [...commandHistory, { type: 'command', text: `${username}@x0thra:${promptPath}$ ${trimmed}` }];
+    commandHistory = [...commandHistory, { type: 'command', text: `${username}@x0thra.github.io:${promptPath}$ ${trimmed}` }];
     
     const args = trimmed.split(' ').filter(Boolean);
     const mainCommand = args[0].toLowerCase();
@@ -317,7 +259,7 @@
   });
 
   afterUpdate(() => {
-    if (isLoggedIn) {
+    if (!isBooting) {
       if (terminalContainer) {
         terminalContainer.scrollTop = terminalContainer.scrollHeight;
       }
@@ -335,7 +277,7 @@
 </script>
 
 <svelte:head>
-  <title>{isLoggedIn ? `${username}@x0thra:~` : "x0thra's page"}</title>
+  <title>{!isBooting ? `${username}@x0thra.github.io:~` : "x0thra's page"}</title>
 </svelte:head>
 
 <svelte:window on:keydown={onGlobalKeyDown} />
@@ -394,7 +336,7 @@
       {/each}
 
       <div class="flex items-center mt-3">
-        <span class="text-[#a78bfa] mr-3 whitespace-nowrap">{username}@x0thra:{currentPath.join('/')}$</span>
+        <span class="text-[#a78bfa] mr-3 whitespace-nowrap">{username}@x0thra.github.io:{currentPath.join('/')}$</span>
         <input 
           bind:this={inputElement}
           bind:value={currentInput}
