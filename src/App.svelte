@@ -16,28 +16,37 @@
 
   let renderedBootMessages = [];
   const bootSequence = [
-    "[  OK  ] Started udev Kernel Device Manager.",
-    "[  OK  ] Started Dispatch Password Requests to Console Directory Watch.",
-    "[  OK  ] Reached target Local File Systems (Pre).",
-    "         Mounting Kernel Debug File System...",
-    "         Mounting POSIX Message Queue File System...",
-    "[  OK  ] Mounted Kernel Debug File System.",
-    "[  OK  ] Mounted POSIX Message Queue File System.",
-    "[  OK  ] Reached target Local File Systems.",
-    "         Starting Create Volatile Files and Directories...",
-    "[  OK  ] Started Create Volatile Files and Directories.",
-    "         Starting Network Time Synchronization...",
-    "[  OK  ] Started Network Time Synchronization.",
-    "[  OK  ] Reached target System Initialization.",
-    "[  OK  ] Started Daily Cleanup of Temporary Directories.",
-    "[  OK  ] Reached target Timers.",
-    "[  OK  ] Listening on D-Bus System Message Bus Socket.",
-    "[  OK  ] Reached target Sockets.",
-    "[  OK  ] Reached target Basic System.",
-    "         Starting User Login Management...",
-    "[  OK  ] Started User Login Management.",
-    "         Starting x0thra-os session...",
-    "[  OK  ] Session established."
+    { msg: "[  OK  ] Started udev Kernel Device Manager.", delay: 30 },
+    { msg: "[  OK  ] Started Dispatch Password Requests to Console Directory Watch.", delay: 20 },
+    { msg: "[  OK  ] Reached target Local File Systems (Pre).", delay: 10 },
+    { msg: "         Mounting Kernel Debug File System...", delay: 200 },
+    { msg: "         Mounting POSIX Message Queue File System...", delay: 150 },
+    { msg: "         Mounting Temporary Directory /tmp...", delay: 400 },
+    { msg: "[  OK  ] Mounted Kernel Debug File System.", delay: 10 },
+    { msg: "[  OK  ] Mounted POSIX Message Queue File System.", delay: 10 },
+    { msg: "[  OK  ] Mounted Temporary Directory /tmp.", delay: 50 },
+    { msg: "[  OK  ] Reached target Local File Systems.", delay: 10 },
+    { msg: "         Starting Create Volatile Files and Directories...", delay: 120 },
+    { msg: "[  OK  ] Started Create Volatile Files and Directories.", delay: 20 },
+    { msg: "         Starting Network Time Synchronization...", delay: 500 },
+    { msg: "[  OK  ] Started Network Time Synchronization.", delay: 10 },
+    { msg: "         Starting Update UTMP about System Boot/Shutdown...", delay: 300 },
+    { msg: "[  OK  ] Started Update UTMP about System Boot/Shutdown.", delay: 20 },
+    { msg: "[  OK  ] Reached target System Initialization.", delay: 10 },
+    { msg: "[  OK  ] Started Daily Cleanup of Temporary Directories.", delay: 10 },
+    { msg: "[  OK  ] Reached target Timers.", delay: 10 },
+    { msg: "         Starting D-Bus System Message Bus...", delay: 150 },
+    { msg: "[  OK  ] Listening on D-Bus System Message Bus Socket.", delay: 10 },
+    { msg: "[  OK  ] Reached target Sockets.", delay: 10 },
+    { msg: "[  OK  ] Reached target Basic System.", delay: 10 },
+    { msg: "         Starting OpenSSH Daemon...", delay: 600 },
+    { msg: "[  OK  ] Started OpenSSH Daemon.", delay: 10 },
+    { msg: "         Starting User Login Management...", delay: 200 },
+    { msg: "[  OK  ] Started User Login Management.", delay: 20 },
+    { msg: "         Starting WPA supplicant...", delay: 300 },
+    { msg: "[  OK  ] Started WPA supplicant.", delay: 10 },
+    { msg: "         Starting x0thra-os session...", delay: 800 },
+    { msg: "[  OK  ] Session established.", delay: 20 }
   ];
 
   const fileSystem = {
@@ -223,8 +232,9 @@
   onMount(() => {
     const runBootSequence = async () => {
       for (let i = 0; i < bootSequence.length; i++) {
-        await new Promise(resolve => setTimeout(resolve, Math.random() * 80 + 20));
-        renderedBootMessages = [...renderedBootMessages, bootSequence[i]];
+        const jitter = Math.random() * 30; // rastgele 0-30ms gecikme
+        await new Promise(resolve => setTimeout(resolve, bootSequence[i].delay + jitter));
+        renderedBootMessages = [...renderedBootMessages, bootSequence[i].msg];
         window.scrollTo(0, document.body.scrollHeight);
       }
       setTimeout(() => {
