@@ -7,6 +7,8 @@
   const DISCORD_WEBHOOK_URL = 'https://green-bread-f7b4.x0thra.workers.dev/';
 
   let commandHistory = [];
+  let enteredCommands = [];
+  let historyIndex = -1;
   let currentInput = '';
   let inputElement;
   let terminalContainer;
@@ -129,6 +131,12 @@
   const handleCommand = (cmd) => {
     const trimmed = cmd.trim();
     const promptPath = currentPath.join('/');
+    
+    if (trimmed) {
+      enteredCommands = [...enteredCommands, trimmed];
+      historyIndex = enteredCommands.length;
+    }
+
     if (!trimmed) {
       commandHistory = [...commandHistory, { type: 'command', text: `${username}@x0thra.github.io:${promptPath}$ ` }];
       return;
@@ -269,6 +277,27 @@
   const onKeyDown = (e) => {
     if (e.key === 'Enter') {
       handleCommand(currentInput);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (enteredCommands.length > 0) {
+        const minIndex = Math.max(0, enteredCommands.length - 5);
+        if (historyIndex === -1 || historyIndex === enteredCommands.length) {
+          historyIndex = enteredCommands.length - 1;
+          currentInput = enteredCommands[historyIndex];
+        } else if (historyIndex > minIndex) {
+          historyIndex--;
+          currentInput = enteredCommands[historyIndex];
+        }
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (historyIndex >= 0 && historyIndex < enteredCommands.length - 1) {
+        historyIndex++;
+        currentInput = enteredCommands[historyIndex];
+      } else if (historyIndex === enteredCommands.length - 1) {
+        historyIndex = enteredCommands.length;
+        currentInput = '';
+      }
     }
   };
 
