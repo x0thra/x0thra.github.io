@@ -146,9 +146,10 @@
 
     switch (mainCommand) {
       case 'help':
-        output = 'Available commands:\n  help   - Show this message\n  ls     - List files and directories\n  cd     - Change directory\n  pwd    - Print working directory\n  cat    - View file content\n  clear  - Clear terminal\n  whoami - Print current user\n  matrix - Run the matrix digital rain';
+        output = 'Available commands:\n  help      - Show this message\n  ls (ll)   - List files and directories\n  cd        - Change directory\n  pwd       - Print working directory\n  cat       - View file content\n  fastfetch - Display system info\n  date      - Print current date and time\n  uname     - Print system info\n  echo      - Print a message\n  history   - Command history\n  clear     - Clear terminal\n  whoami    - Print current user\n  matrix    - Run the matrix digital rain';
         break;
       case 'ls':
+      case 'll':
         if (currentDirObj) {
           output = Object.keys(currentDirObj.contents).map(k => {
             return currentDirObj.contents[k].type === 'dir' ? `<span class="text-blue-400">${k}/</span>` : k;
@@ -212,8 +213,50 @@
         startMatrix();
         currentInput = '';
         return;
+      case 'fastfetch':
+        output = `<div class="flex flex-col md:flex-row gap-4 items-center md:items-start text-sm">
+  <div class="text-[#a78bfa] whitespace-pre font-bold">
+       /\\
+      /  \\
+     /\\   \\
+    /      \\
+   /   ,,   \\
+  /   |  |   \\
+ /_-''    ''-_\\
+  </div>
+  <div class="flex flex-col">
+    <span class="text-[#a78bfa] font-bold">guest@x0thra</span>
+    <span>-------------</span>
+    <span><span class="text-[#a78bfa] font-bold">OS</span>: Arch Linux x86_64</span>
+    <span><span class="text-[#a78bfa] font-bold">Host</span>: x0thra-server</span>
+    <span><span class="text-[#a78bfa] font-bold">Kernel</span>: 7.0.5-arch1-1</span>
+    <span><span class="text-[#a78bfa] font-bold">Uptime</span>: 14 days, 3 hours, 22 mins</span>
+    <span><span class="text-[#a78bfa] font-bold">Packages</span>: 815 (pacman)</span>
+    <span><span class="text-[#a78bfa] font-bold">Shell</span>: bash 5.2.15</span>
+    <span><span class="text-[#a78bfa] font-bold">Terminal</span>: /dev/tty1</span>
+    <div class="flex gap-1 mt-1">
+      <div class="w-4 h-4 bg-black"></div><div class="w-4 h-4 bg-red-500"></div><div class="w-4 h-4 bg-green-500"></div><div class="w-4 h-4 bg-yellow-500"></div><div class="w-4 h-4 bg-blue-500"></div><div class="w-4 h-4 bg-purple-500"></div><div class="w-4 h-4 bg-cyan-500"></div><div class="w-4 h-4 bg-white"></div>
+    </div>
+  </div>
+</div>`;
+        isHtml = true;
+        break;
+      case 'date':
+        output = new Date().toString();
+        break;
+      case 'uname':
+        output = args.includes('-a') ? 'Linux x0thra 7.0.5-arch1-1 #1 SMP PREEMPT_DYNAMIC Thu Aug 13 20:26:00 UTC 2026 x86_64 GNU/Linux' : 'Linux';
+        break;
+      case 'echo':
+        output = args.slice(1).join(' ');
+        if (output.startsWith('"') && output.endsWith('"')) output = output.slice(1, -1);
+        if (output.startsWith("'") && output.endsWith("'")) output = output.slice(1, -1);
+        break;
+      case 'history':
+        output = commandHistory.filter(c => c.type === 'command').map((c, i) => `  ${i + 1}  ${c.text.split('$ ')[1] || ''}`).join('\n');
+        break;
       default:
-        output = `Command not found: ${mainCommand}. Type "help" for a list of commands.`;
+        output = `bash: ${mainCommand}: command not found`;
     }
 
     if (output) {
