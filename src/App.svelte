@@ -146,7 +146,7 @@
 
     switch (mainCommand) {
       case 'help':
-        output = 'Available commands:\n  help   - Show this message\n  ls     - List files and directories\n  cd     - Change directory\n  pwd    - Print working directory\n  cat    - View file content\n  clear  - Clear terminal\n  whoami - Print current user\n  matrix - ???';
+        output = 'Available commands:\n  help   - Show this message\n  ls     - List files and directories\n  cd     - Change directory\n  pwd    - Print working directory\n  cat    - View file content\n  clear  - Clear terminal\n  whoami - Print current user\n  matrix - Run the matrix digital rain';
         break;
       case 'ls':
         if (currentDirObj) {
