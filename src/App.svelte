@@ -329,7 +329,6 @@
 {#if isBooting}
   <main class="min-h-screen bg-black text-gray-300 font-mono p-6 cursor-default" aria-hidden="true">
     <div class="max-w-3xl flex flex-col space-y-1 text-sm md:text-[15px]">
-      <p class="mb-4 text-gray-400">Arch Linux 7.0.5-arch1-1 (tty1)</p>
       {#each renderedBootMessages as msg}
         <div>
           {#if msg.startsWith('[  OK  ]')}
