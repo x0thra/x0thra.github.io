@@ -286,38 +286,19 @@
   <canvas bind:this={matrixCanvas} class="fixed top-0 left-0 w-full h-full z-50 bg-black cursor-none"></canvas>
 {/if}
 
-{#if !isLoggedIn}
-  <main class="min-h-screen bg-black text-gray-300 font-mono p-6 cursor-text" on:click={focusInput} aria-hidden="true">
-    <div class="max-w-3xl">
+{#if isBooting}
+  <main class="min-h-screen bg-black text-gray-300 font-mono p-6 cursor-default" aria-hidden="true">
+    <div class="max-w-3xl flex flex-col space-y-1 text-sm md:text-[15px]">
       <p class="mb-4 text-gray-400">Arch Linux 7.0.5-arch1-1 (tty1)</p>
-      
-      {#each failedLogins as failedUser}
-        <div class="flex flex-col mb-1">
-          <span>x0thra-server login: {failedUser}</span>
-          <span class="text-gray-400">Login incorrect (this is not a real server login. just type your own username)</span>
+      {#each renderedBootMessages as msg}
+        <div>
+          {#if msg.startsWith('[  OK  ]')}
+            <span class="text-green-500 font-bold">[  OK  ]</span><span>{msg.substring(8)}</span>
+          {:else}
+            <span class="text-gray-400">{msg}</span>
+          {/if}
         </div>
       {/each}
-
-      {#if !isLoggingIn}
-        <div class="flex items-center">
-          <span class="mr-2">x0thra-server login:</span>
-          <input 
-            bind:this={loginInputEl}
-            bind:value={loginInput}
-            on:keydown={onLoginKeyDown}
-            type="text" 
-            class="flex-1 bg-transparent outline-none border-none text-gray-300 focus:ring-0 p-0 m-0 shadow-none caret-gray-300"
-            spellcheck="false"
-            autocomplete="off"
-            autofocus
-          />
-        </div>
-      {:else}
-        <div class="flex flex-col">
-          <span>x0thra-server login: {loginInput}</span>
-          <span class="mt-2 text-gray-500">authenticating...</span>
-        </div>
-      {/if}
     </div>
   </main>
 {:else}
