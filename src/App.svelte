@@ -1,14 +1,8 @@
 <script>
   import { onMount, afterUpdate } from 'svelte';
   
-  let isLoggedIn = false;
-  let isLoggingIn = false;
-  let loginInput = '';
-  let loginInputEl;
+  let isBooting = true;
   let username = 'guest';
-  let failedLogins = [];
-
-  $: loginInput = loginInput.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 20);
 
   const DISCORD_WEBHOOK_URL = 'https://green-bread-f7b4.x0thra.workers.dev/';
 
@@ -19,6 +13,32 @@
   let currentPath = ['~'];
   let isMatrixMode = false;
   let matrixCanvas;
+
+  let renderedBootMessages = [];
+  const bootSequence = [
+    "[  OK  ] Started udev Kernel Device Manager.",
+    "[  OK  ] Started Dispatch Password Requests to Console Directory Watch.",
+    "[  OK  ] Reached target Local File Systems (Pre).",
+    "         Mounting Kernel Debug File System...",
+    "         Mounting POSIX Message Queue File System...",
+    "[  OK  ] Mounted Kernel Debug File System.",
+    "[  OK  ] Mounted POSIX Message Queue File System.",
+    "[  OK  ] Reached target Local File Systems.",
+    "         Starting Create Volatile Files and Directories...",
+    "[  OK  ] Started Create Volatile Files and Directories.",
+    "         Starting Network Time Synchronization...",
+    "[  OK  ] Started Network Time Synchronization.",
+    "[  OK  ] Reached target System Initialization.",
+    "[  OK  ] Started Daily Cleanup of Temporary Directories.",
+    "[  OK  ] Reached target Timers.",
+    "[  OK  ] Listening on D-Bus System Message Bus Socket.",
+    "[  OK  ] Reached target Sockets.",
+    "[  OK  ] Reached target Basic System.",
+    "         Starting User Login Management...",
+    "[  OK  ] Started User Login Management.",
+    "         Starting x0thra-os session...",
+    "[  OK  ] Session established."
+  ];
 
   const fileSystem = {
     '~': {
@@ -201,9 +221,21 @@
   };
 
   onMount(() => {
-    if (!isLoggedIn && loginInputEl) {
-      loginInputEl.focus();
-    }
+    const runBootSequence = async () => {
+      for (let i = 0; i < bootSequence.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, Math.random() * 80 + 20));
+        renderedBootMessages = [...renderedBootMessages, bootSequence[i]];
+        window.scrollTo(0, document.body.scrollHeight);
+      }
+      setTimeout(() => {
+        isBooting = false;
+        commandHistory = [
+          { type: 'output', text: `Welcome to x0thra-os.\nType "help" to see available commands.` }
+        ];
+        setTimeout(() => focusInput(), 50);
+      }, 500);
+    };
+    runBootSequence();
 
     const triggerPunishment = () => {
       const messages = [
@@ -268,10 +300,8 @@
   });
 
   const focusInput = () => {
-    if (isLoggedIn && inputElement) {
+    if (!isBooting && inputElement) {
       inputElement.focus();
-    } else if (!isLoggedIn && loginInputEl) {
-      loginInputEl.focus();
     }
   };
 </script>
