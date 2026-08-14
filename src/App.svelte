@@ -63,12 +63,12 @@
       type: 'dir',
       isSystem: true,
       contents: {
-        'bin': { type: 'dir', isSystem: true, contents: {} },
-        'etc': { type: 'dir', isSystem: true, contents: {} },
-        'var': { type: 'dir', isSystem: true, contents: {} },
-        'usr': { type: 'dir', isSystem: true, contents: {} },
-        'root': { type: 'dir', isSystem: true, contents: {} },
-        'boot': { type: 'dir', isSystem: true, contents: {} },
+        'bin': { type: 'dir', isSystem: true, restricted: true, contents: {} },
+        'etc': { type: 'dir', isSystem: true, restricted: true, contents: {} },
+        'var': { type: 'dir', isSystem: true, restricted: true, contents: {} },
+        'usr': { type: 'dir', isSystem: true, restricted: true, contents: {} },
+        'root': { type: 'dir', isSystem: true, restricted: true, contents: {} },
+        'boot': { type: 'dir', isSystem: true, restricted: true, contents: {} },
         'README.txt': { 
           type: 'file', 
           isSystem: true, 
@@ -249,7 +249,10 @@
       case 'll':
         if (currentDirObj) {
           output = Object.keys(currentDirObj.contents).map(k => {
-            return currentDirObj.contents[k].type === 'dir' ? `<span class="text-blue-400">${k}/</span>` : k;
+            if (currentDirObj.contents[k].type === 'dir') {
+              return currentDirObj.contents[k].restricted ? `<span class="text-red-700">${k}/</span>` : `<span class="text-blue-400">${k}/</span>`;
+            }
+            return k;
           }).join('   ');
           isHtml = true;
         }
