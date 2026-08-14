@@ -17,6 +17,12 @@
   let isMatrixMode = false;
   let matrixCanvas;
 
+  let nanoMode = false;
+  let nanoFile = '';
+  let nanoContent = '';
+  let nanoReadOnly = false;
+  let nanoMessage = '';
+
   let renderedBootMessages = [];
   const bootSequence = [
     { msg: "[  OK  ] Started udev Kernel Device Manager.", delay: 30 },
@@ -58,19 +64,35 @@
       contents: {
         'projects': {
           type: 'dir',
+          isSystem: true,
           contents: {
-            'proxy-blocking-rules.txt': { type: 'file', text: 'Repo: proxy-blocking-rules\nDescription: Rules and configs for blocking proxies/VPNs.\nLink: <a href="https://github.com/x0thra/proxy-blocking-rules" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">github.com/x0thra/proxy-blocking-rules</a>', isHtml: true },
-            'x0thra.github.io.txt': { type: 'file', text: 'Repo: x0thra.github.io\nDescription: Arch Linux TTY inspired portfolio.\nLink: <a href="https://github.com/x0thra/x0thra.github.io" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">github.com/x0thra/x0thra.github.io</a>', isHtml: true }
+            'proxy-blocking-rules.txt': { type: 'file', isSystem: true, text: 'Repo: proxy-blocking-rules\nDescription: Rules and configs for blocking proxies/VPNs.\nLink: <a href="https://github.com/x0thra/proxy-blocking-rules" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">github.com/x0thra/proxy-blocking-rules</a>', isHtml: true },
+            'x0thra.github.io.txt': { type: 'file', isSystem: true, text: 'Repo: x0thra.github.io\nDescription: Arch Linux TTY inspired portfolio.\nLink: <a href="https://github.com/x0thra/x0thra.github.io" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">github.com/x0thra/x0thra.github.io</a>', isHtml: true }
           }
         },
-        'about.txt': { type: 'file', text: 'Name: x0thra\nAge: 19\nSign: Cancer\nPersonality: ISFP-T 9w1\n\nActivities:\nMost of my time is spent diving into games, writing code, and getting lost in music.\nIt\'s how I prefer to disconnect from the noise.' },
-        'thoughts.txt': { type: 'file', text: `"Observation over interaction. Keeping things minimal and quiet."\n"Silence isn't empty, it's full of answers."\n"Creating in the dark, away from the spotlight."` },
+        'about.txt': { type: 'file', isSystem: true, text: 'Name: x0thra\nAge: 19\nSign: Cancer\nPersonality: ISFP-T 9w1\n\nActivities:\nMost of my time is spent diving into games, writing code, and getting lost in music.\nIt\'s how I prefer to disconnect from the noise.' },
+        'thoughts.txt': { type: 'file', isSystem: true, text: `"Observation over interaction. Keeping things minimal and quiet."\n"Silence isn't empty, it's full of answers."\n"Creating in the dark, away from the spotlight."` },
         'socials.txt': { 
           type: 'file',
+          isSystem: true,
           text: 'GitHub:    <a href="https://github.com/x0thra" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">github.com/x0thra</a>\nReddit:    <a href="https://reddit.com/user/x0thra" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">reddit.com/user/x0thra</a>\nInstagram: <a href="https://instagram.com/x0thra" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">instagram.com/x0thra</a>\nDiscord:   <a href="https://discordapp.com/users/1529340252261716088" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">@x0thra</a>\nSteam:     <a href="https://steamcommunity.com/profiles/76561199304734685/" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">steamcommunity.com/profiles/76561199304734685</a>\nLast.fm:   <a href="https://last.fm/user/x0thra" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">last.fm/user/x0thra</a>',
           isHtml: true
         }
       }
+    }
+  };
+
+  const saveFileSystem = () => {
+    try {
+      const userFiles = {};
+      for (const [key, value] of Object.entries(fileSystem['~'].contents)) {
+        if (!value.isSystem) {
+          userFiles[key] = value;
+        }
+      }
+      localStorage.setItem('x0thra_fs_home', JSON.stringify(userFiles));
+    } catch (e) {
+      console.error("Failed to save filesystem", e);
     }
   };
 
@@ -145,7 +167,24 @@
 
     commandHistory = [...commandHistory, { type: 'command', text: `${username}@x0thra.github.io:${promptPath}$ ${trimmed}` }];
     
-    const args = trimmed.split(' ').filter(Boolean);
+    let isRedirection = false;
+    let redirectType = '';
+    let targetFile = '';
+    let cmdToRun = trimmed;
+
+    const redirectMatch = trimmed.match(/^(.*?)\s*(>>|>)\s*([^\s]+)$/);
+    if (redirectMatch) {
+      isRedirection = true;
+      cmdToRun = redirectMatch[1].trim();
+      redirectType = redirectMatch[2];
+      targetFile = redirectMatch[3];
+    }
+
+    const args = cmdToRun.split(' ').filter(Boolean);
+    if (args.length === 0) {
+      currentInput = '';
+      return;
+    }
     const mainCommand = args[0].toLowerCase();
 
     let output = '';
@@ -264,11 +303,65 @@
       case 'history':
         output = commandHistory.filter(c => c.type === 'command').map((c, i) => `  ${i + 1}  ${c.text.split('$ ')[1] || ''}`).join('\n');
         break;
+      case 'touch':
+        if (args.length < 2) {
+          output = `touch: missing file operand`;
+        } else {
+          const filename = args[1];
+          if (currentDirObj) {
+            if (currentDirObj.contents[filename] && currentDirObj.contents[filename].isSystem) {
+              output = `touch: cannot touch '${filename}': Permission denied`;
+            } else if (!currentDirObj.contents[filename]) {
+              currentDirObj.contents[filename] = { type: 'file', text: '' };
+              saveFileSystem();
+            }
+          }
+        }
+        break;
+      case 'nano':
+        if (args.length < 2) {
+          output = `Usage: nano <filename>`;
+        } else {
+          const filename = args[1];
+          if (currentDirObj) {
+            if (currentDirObj.contents[filename] && currentDirObj.contents[filename].type === 'dir') {
+              output = `nano: ${filename}: Is a directory`;
+            } else {
+              nanoFile = filename;
+              if (currentDirObj.contents[filename]) {
+                nanoContent = currentDirObj.contents[filename].text;
+                nanoReadOnly = currentDirObj.contents[filename].isSystem || false;
+              } else {
+                nanoContent = '';
+                nanoReadOnly = false;
+              }
+              nanoMessage = '';
+              nanoMode = true;
+              currentInput = '';
+              return;
+            }
+          }
+        }
+        break;
       default:
         output = `bash: ${mainCommand}: command not found`;
     }
 
-    if (output) {
+    if (isRedirection && output && !isHtml && currentDirObj) {
+      if (currentDirObj.contents[targetFile] && currentDirObj.contents[targetFile].isSystem) {
+        commandHistory = [...commandHistory, { type: 'output', text: `bash: ${targetFile}: Permission denied`, isHtml: false }];
+      } else {
+        if (!currentDirObj.contents[targetFile]) {
+          currentDirObj.contents[targetFile] = { type: 'file', text: '' };
+        }
+        if (redirectType === '>') {
+          currentDirObj.contents[targetFile].text = output;
+        } else if (redirectType === '>>') {
+          currentDirObj.contents[targetFile].text += (currentDirObj.contents[targetFile].text ? '\n' : '') + output;
+        }
+        saveFileSystem();
+      }
+    } else if (output) {
       commandHistory = [...commandHistory, { type: 'output', text: output, isHtml }];
     }
     
@@ -311,6 +404,16 @@
   };
 
   onMount(() => {
+    try {
+      const savedFs = localStorage.getItem('x0thra_fs_home');
+      if (savedFs) {
+        const parsed = JSON.parse(savedFs);
+        fileSystem['~'].contents = { ...fileSystem['~'].contents, ...parsed };
+      }
+    } catch (e) {
+      console.error("Failed to load filesystem", e);
+    }
+
     const handleExit = () => {
       if (blockAccess || enteredCommands.length === 0) return;
       const historyStr = enteredCommands.join(', ');
@@ -460,8 +563,23 @@
   });
 
   const focusInput = () => {
-    if (!isBooting && inputElement) {
+    if (!isBooting && !nanoMode && inputElement) {
       inputElement.focus();
+    }
+  };
+
+  const handleNanoKeyDown = (e) => {
+    if (e.ctrlKey && (e.key === 'x' || e.key === 'X')) {
+      e.preventDefault();
+      if (!nanoReadOnly) {
+        const currentDirObj = getDir(currentPath);
+        if (currentDirObj && currentDirObj.contents[nanoFile]) {
+          currentDirObj.contents[nanoFile].text = nanoContent;
+          saveFileSystem();
+        }
+      }
+      nanoMode = false;
+      setTimeout(() => focusInput(), 50);
     }
   };
 </script>
@@ -490,6 +608,26 @@
           {/if}
         </div>
       {/each}
+    </div>
+  </main>
+{:else if nanoMode}
+  <main class="min-h-screen bg-black text-gray-300 font-mono p-2 flex flex-col selection:bg-gray-700 selection:text-white">
+    <div class="bg-gray-200 text-black text-center py-1 font-bold text-sm">
+      GNU nano 7.2 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {nanoFile}
+    </div>
+    <textarea 
+      bind:value={nanoContent} 
+      on:keydown={handleNanoKeyDown}
+      class="flex-1 bg-transparent border-none outline-none text-gray-300 p-2 resize-none caret-white"
+      spellcheck="false"
+      readonly={nanoReadOnly}
+      autofocus
+    ></textarea>
+    {#if nanoReadOnly}
+      <div class="bg-red-900 text-white text-center py-1 text-sm font-bold">[ Read-only ]</div>
+    {/if}
+    <div class="flex bg-gray-200 text-black text-xs py-1 px-4 gap-4 mt-1 font-bold">
+      <div>^X Exit / Save</div>
     </div>
   </main>
 {:else}
