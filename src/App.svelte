@@ -13,7 +13,7 @@
   let currentInput = '';
   let inputElement;
   let terminalContainer;
-  let currentPath = ['home', 'guest'];
+  let currentPath = [];
   let isMatrixMode = false;
   let matrixCanvas;
 
