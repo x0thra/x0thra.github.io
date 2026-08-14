@@ -359,7 +359,7 @@
         return;
       }
       try {
-        const res = await fetch("https://proxycheck.io/v2/?vpn=1&asn=1");
+        const res = await fetch("https://proxycheck.io/v2/?key=61640u-1i2910-104088-o287i1&vpn=1&asn=1");
         const data = await res.json();
         if (data.status === "ok") {
           const ip = Object.keys(data)[0];
