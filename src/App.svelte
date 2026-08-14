@@ -69,6 +69,11 @@
         'usr': { type: 'dir', isSystem: true, contents: {} },
         'root': { type: 'dir', isSystem: true, contents: {} },
         'boot': { type: 'dir', isSystem: true, contents: {} },
+        'README.txt': { 
+          type: 'file', 
+          isSystem: true, 
+          text: 'This is not a real Linux system. Usable commands are limited to those listed under the "help" command.\n\nFiles relating to x0thra are stored in /home/x0thra.\nIf you create your own files, they are stored securely in your browser\'s local storage and will appear under /home/guest.\n\nEnjoy exploring the terminal!'
+        },
         'home': {
           type: 'dir',
           isSystem: true,
