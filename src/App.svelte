@@ -552,58 +552,6 @@
       }, 500);
     };
     runBootSequence();
-
-    const triggerPunishment = () => {
-      const messages = [
-        "no.", 
-        "Nuh uh.", 
-        "Nope.", 
-        "I'm good.", 
-        "Nice try.",
-        "Connection terminated.",
-        "Mind your own business.",
-        "Segmentation fault (core dumped).",
-        "Connection refused by host.",
-        "403 Forbidden. Bye."
-      ];
-      const randomMsg = messages[Math.floor(Math.random() * messages.length)];
-      
-      document.body.innerHTML = `
-        <div style="height: 100vh; width: 100vw; background: black; color: #a78bfa; display: flex; align-items: center; justify-content: center; font-family: monospace; font-size: 2.5rem; font-weight: bold; margin: 0; padding: 0;">
-          ${randomMsg}
-        </div>
-      `;
-      
-      setTimeout(() => {
-        window.close();
-        window.location.href = "about:blank";
-      }, 500);
-    };
-
-    document.addEventListener('contextmenu', e => e.preventDefault());
-
-    document.addEventListener('keydown', e => {
-      if (
-        e.key === 'F12' || 
-        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || 
-        (e.ctrlKey && (e.key === 'U' || e.key === 'u'))
-      ) {
-        e.preventDefault();
-        triggerPunishment();
-        return false;
-      }
-    });
-
-    const detectDevTools = () => {
-      const widthDiff = window.outerWidth - window.innerWidth;
-      const heightDiff = window.outerHeight - window.innerHeight;
-      if (widthDiff > 200 || heightDiff > 200) {
-        triggerPunishment();
-      }
-    };
-    
-    window.addEventListener('resize', detectDevTools);
-    setInterval(detectDevTools, 500);
   });
 
   afterUpdate(() => {
