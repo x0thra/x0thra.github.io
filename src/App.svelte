@@ -13,7 +13,7 @@
   let currentInput = '';
   let inputElement;
   let terminalContainer;
-  let currentPath = ['~'];
+  let currentPath = ['home', 'guest'];
   let isMatrixMode = false;
   let matrixCanvas;
 
@@ -59,24 +59,48 @@
   ];
 
   const fileSystem = {
-    '~': {
+    '/': {
       type: 'dir',
+      isSystem: true,
       contents: {
-        'projects': {
+        'bin': { type: 'dir', isSystem: true, contents: {} },
+        'etc': { type: 'dir', isSystem: true, contents: {} },
+        'var': { type: 'dir', isSystem: true, contents: {} },
+        'usr': { type: 'dir', isSystem: true, contents: {} },
+        'root': { type: 'dir', isSystem: true, contents: {} },
+        'boot': { type: 'dir', isSystem: true, contents: {} },
+        'home': {
           type: 'dir',
           isSystem: true,
           contents: {
-            'proxy-blocking-rules.txt': { type: 'file', isSystem: true, text: 'Repo: proxy-blocking-rules\nDescription: Rules and configs for blocking proxies/VPNs.\nLink: <a href="https://github.com/x0thra/proxy-blocking-rules" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">github.com/x0thra/proxy-blocking-rules</a>', isHtml: true },
-            'x0thra.github.io.txt': { type: 'file', isSystem: true, text: 'Repo: x0thra.github.io\nDescription: Arch Linux TTY inspired portfolio.\nLink: <a href="https://github.com/x0thra/x0thra.github.io" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">github.com/x0thra/x0thra.github.io</a>', isHtml: true }
+            'guest': {
+              type: 'dir',
+              isSystem: true,
+              contents: {}
+            },
+            'x0thra': {
+              type: 'dir',
+              isSystem: true,
+              contents: {
+                'projects': {
+                  type: 'dir',
+                  isSystem: true,
+                  contents: {
+                    'proxy-blocking-rules.txt': { type: 'file', isSystem: true, text: 'Repo: proxy-blocking-rules\nDescription: Rules and configs for blocking proxies/VPNs.\nLink: <a href="https://github.com/x0thra/proxy-blocking-rules" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">github.com/x0thra/proxy-blocking-rules</a>', isHtml: true },
+                    'x0thra.github.io.txt': { type: 'file', isSystem: true, text: 'Repo: x0thra.github.io\nDescription: Arch Linux TTY inspired portfolio.\nLink: <a href="https://github.com/x0thra/x0thra.github.io" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">github.com/x0thra/x0thra.github.io</a>', isHtml: true }
+                  }
+                },
+                'about.txt': { type: 'file', isSystem: true, text: 'Name: x0thra\nAge: 19\nSign: Cancer\nPersonality: ISFP-T 9w1\n\nActivities:\nMost of my time is spent diving into games, writing code, and getting lost in music.\nIt\'s how I prefer to disconnect from the noise.' },
+                'thoughts.txt': { type: 'file', isSystem: true, text: `"Observation over interaction. Keeping things minimal and quiet."\n"Silence isn't empty, it's full of answers."\n"Creating in the dark, away from the spotlight."` },
+                'socials.txt': { 
+                  type: 'file',
+                  isSystem: true,
+                  text: 'GitHub:    <a href="https://github.com/x0thra" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">github.com/x0thra</a>\nReddit:    <a href="https://reddit.com/user/x0thra" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">reddit.com/user/x0thra</a>\nInstagram: <a href="https://instagram.com/x0thra" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">instagram.com/x0thra</a>\nDiscord:   <a href="https://discordapp.com/users/1529340252261716088" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">@x0thra</a>\nSteam:     <a href="https://steamcommunity.com/profiles/76561199304734685/" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">steamcommunity.com/profiles/76561199304734685</a>\nLast.fm:   <a href="https://last.fm/user/x0thra" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">last.fm/user/x0thra</a>',
+                  isHtml: true
+                }
+              }
+            }
           }
-        },
-        'about.txt': { type: 'file', isSystem: true, text: 'Name: x0thra\nAge: 19\nSign: Cancer\nPersonality: ISFP-T 9w1\n\nActivities:\nMost of my time is spent diving into games, writing code, and getting lost in music.\nIt\'s how I prefer to disconnect from the noise.' },
-        'thoughts.txt': { type: 'file', isSystem: true, text: `"Observation over interaction. Keeping things minimal and quiet."\n"Silence isn't empty, it's full of answers."\n"Creating in the dark, away from the spotlight."` },
-        'socials.txt': { 
-          type: 'file',
-          isSystem: true,
-          text: 'GitHub:    <a href="https://github.com/x0thra" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">github.com/x0thra</a>\nReddit:    <a href="https://reddit.com/user/x0thra" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">reddit.com/user/x0thra</a>\nInstagram: <a href="https://instagram.com/x0thra" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">instagram.com/x0thra</a>\nDiscord:   <a href="https://discordapp.com/users/1529340252261716088" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">@x0thra</a>\nSteam:     <a href="https://steamcommunity.com/profiles/76561199304734685/" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">steamcommunity.com/profiles/76561199304734685</a>\nLast.fm:   <a href="https://last.fm/user/x0thra" target="_blank" class="text-purple-300 hover:text-purple-400 hover:underline">last.fm/user/x0thra</a>',
-          isHtml: true
         }
       }
     }
@@ -85,7 +109,8 @@
   const saveFileSystem = () => {
     try {
       const userFiles = {};
-      for (const [key, value] of Object.entries(fileSystem['~'].contents)) {
+      const guestDir = fileSystem['/'].contents['home'].contents['guest'].contents;
+      for (const [key, value] of Object.entries(guestDir)) {
         if (!value.isSystem) {
           userFiles[key] = value;
         }
@@ -97,8 +122,8 @@
   };
 
   const getDir = (pathArray) => {
-    let current = fileSystem['~'];
-    for (let i = 1; i < pathArray.length; i++) {
+    let current = fileSystem['/'];
+    for (let i = 0; i < pathArray.length; i++) {
       if (current && current.type === 'dir' && current.contents[pathArray[i]]) {
         current = current.contents[pathArray[i]];
       } else {
@@ -151,9 +176,28 @@
     }
   };
 
+  const resolvePath = (targetPath) => {
+    if (!targetPath || targetPath === '~') return ['home', 'guest'];
+    if (targetPath === '/') return [];
+    
+    let parts = targetPath.split('/').filter(Boolean);
+    let newPath = targetPath.startsWith('/') ? [] : [...currentPath];
+    
+    for (const part of parts) {
+      if (part === '.') continue;
+      if (part === '..') {
+        if (newPath.length > 0) newPath.pop();
+      } else {
+        newPath.push(part);
+      }
+    }
+    return newPath;
+  };
+
   const handleCommand = (cmd) => {
     const trimmed = cmd.trim();
-    const promptPath = currentPath.join('/');
+    const absPathForPrompt = '/' + currentPath.join('/');
+    const promptPath = absPathForPrompt === '/home/guest' ? '~' : (absPathForPrompt === '/' ? '/' : absPathForPrompt);
     
     if (trimmed) {
       enteredCommands = [...enteredCommands, trimmed];
@@ -207,31 +251,22 @@
         break;
       case 'cd':
         const targetDir = args[1];
-        if (!targetDir || targetDir === '~' || targetDir === '/home/guest') {
-          currentPath = ['~'];
-        } else if (targetDir === '..') {
-          if (currentPath.length > 1) {
-            currentPath.pop();
-            currentPath = [...currentPath]; // trigger reactivity
+        const resolvedPath = resolvePath(targetDir);
+        const resolvedDirObj = getDir(resolvedPath);
+        if (resolvedDirObj && resolvedDirObj.type === 'dir') {
+          const absPathDir = '/' + resolvedPath.join('/');
+          if (absPathDir.match(/^\/(bin|etc|var|usr|root|boot)$/)) {
+            output = `bash: cd: ${targetDir}: Permission denied`;
+          } else {
+            currentPath = resolvedPath;
           }
         } else {
-          if (currentDirObj && currentDirObj.contents[targetDir]) {
-            if (currentDirObj.contents[targetDir].type === 'dir') {
-              currentPath = [...currentPath, targetDir];
-            } else {
-              output = `cd: ${targetDir}: Not a directory`;
-            }
-          } else {
-            output = `cd: ${targetDir}: No such file or directory`;
-          }
+          output = `bash: cd: ${targetDir || '~'}: No such file or directory`;
         }
         break;
       case 'pwd':
-        if (currentPath[0] === '~') {
-          output = '/home/guest' + (currentPath.length > 1 ? '/' + currentPath.slice(1).join('/') : '');
-        } else {
-          output = '/' + (currentPath.length > 1 ? currentPath.slice(1).join('/') : '');
-        }
+        const pwdStr = '/' + currentPath.join('/');
+        output = pwdStr === '/' ? '/' : pwdStr;
         break;
       case 'cat':
       case 'view':
@@ -312,7 +347,10 @@
           output = `touch: missing file operand`;
         } else {
           const filename = args[1];
-          if (currentDirObj) {
+          const absPathNow = '/' + currentPath.join('/');
+          if (absPathNow !== '/home/guest') {
+            output = `touch: cannot touch '${filename}': Permission denied`;
+          } else if (currentDirObj) {
             if (currentDirObj.contents[filename] && currentDirObj.contents[filename].isSystem) {
               output = `touch: cannot touch '${filename}': Permission denied`;
             } else if (!currentDirObj.contents[filename]) {
@@ -337,7 +375,8 @@
                 nanoReadOnly = currentDirObj.contents[filename].isSystem || false;
               } else {
                 nanoContent = '';
-                nanoReadOnly = false;
+                const absPathNow = '/' + currentPath.join('/');
+                nanoReadOnly = absPathNow !== '/home/guest';
               }
               nanoMessage = '';
               nanoMode = true;
@@ -352,7 +391,8 @@
     }
 
     if (isRedirection && output && !isHtml && currentDirObj) {
-      if (currentDirObj.contents[targetFile] && currentDirObj.contents[targetFile].isSystem) {
+      const absPathNow = '/' + currentPath.join('/');
+      if (absPathNow !== '/home/guest' || (currentDirObj.contents[targetFile] && currentDirObj.contents[targetFile].isSystem)) {
         commandHistory = [...commandHistory, { type: 'output', text: `bash: ${targetFile}: Permission denied`, isHtml: false }];
       } else {
         if (!currentDirObj.contents[targetFile]) {
@@ -412,7 +452,8 @@
       const savedFs = localStorage.getItem('x0thra_fs_home');
       if (savedFs) {
         const parsed = JSON.parse(savedFs);
-        fileSystem['~'].contents = { ...fileSystem['~'].contents, ...parsed };
+        const guestDir = fileSystem['/'].contents['home'].contents['guest'];
+        guestDir.contents = { ...guestDir.contents, ...parsed };
       }
     } catch (e) {
       console.error("Failed to load filesystem", e);
@@ -589,7 +630,7 @@
 </script>
 
 <svelte:head>
-  <title>{!isBooting ? `${username}@x0thra.github.io:~` : "x0thra's page"}</title>
+  <title>{!isBooting ? `${username}@x0thra.github.io:${'/' + currentPath.join('/') === '/home/guest' ? '~' : '/' + currentPath.join('/')}` : "x0thra's page"}</title>
 </svelte:head>
 
 <svelte:window on:keydown={onGlobalKeyDown} />
@@ -650,7 +691,7 @@
       {/each}
 
       <div class="flex items-center mt-3">
-        <span class="text-[#a78bfa] mr-3 whitespace-nowrap">{username}@x0thra.github.io:{currentPath.join('/')}$</span>
+        <span class="text-[#a78bfa] mr-3 whitespace-nowrap">{username}@x0thra.github.io:{'/' + currentPath.join('/') === '/home/guest' ? '~' : '/' + currentPath.join('/')}$</span>
         <input 
           bind:this={inputElement}
           bind:value={currentInput}
