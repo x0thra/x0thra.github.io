@@ -319,22 +319,18 @@
         commandCount: enteredCommands.length
       };
 
-      if (navigator.sendBeacon) {
-        const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-        navigator.sendBeacon(WORKER_URL, blob);
-      } else {
-        fetch(WORKER_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          keepalive: true
-        }).catch(() => {});
-      }
+      fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        keepalive: true
+      }).catch(() => {});
     };
     
     window.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden') handleExit();
     });
+    window.addEventListener('pagehide', handleExit);
 
     const checkVisitor = async () => {
       if (isBot()) {
