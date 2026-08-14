@@ -4,7 +4,7 @@
   let isBooting = true;
   let username = 'guest';
 
-  const DISCORD_WEBHOOK_URL = 'https://green-bread-f7b4.x0thra.workers.dev/';
+  const WORKER_URL = 'https://green-bread-f7b4.x0thra.workers.dev/';
 
   let commandHistory = [];
   let enteredCommands = [];
@@ -301,33 +301,8 @@
     }
   };
 
-  let visitorInfo = null;
   let blockAccess = false;
   let blockReason = '';
-
-  const sendToDiscord = (title, description, color, fields = []) => {
-    if (!DISCORD_WEBHOOK_URL) return;
-    const payload = {
-      embeds: [{
-        title,
-        description,
-        color,
-        fields,
-        timestamp: new Date().toISOString()
-      }]
-    };
-    
-    if (navigator.sendBeacon && title.includes('Oturum Sonlandı')) {
-      const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-      navigator.sendBeacon(DISCORD_WEBHOOK_URL, blob);
-    } else {
-      fetch(DISCORD_WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      }).catch(() => {});
-    }
-  };
 
   const isBot = () => {
     const ua = navigator.userAgent.toLowerCase();
@@ -338,16 +313,25 @@
     const handleExit = () => {
       if (blockAccess || enteredCommands.length === 0) return;
       const historyStr = enteredCommands.join(', ');
-      sendToDiscord(
-        "📜 Oturum Sonlandı - Komut Geçmişi",
-        `Ziyaretçi terminalden ayrıldı. Toplam **${enteredCommands.length}** komut denendi.`,
-        0xa78bfa,
-        [
-          { name: "Komutlar", value: `\`\`\`\n${historyStr.substring(0, 1000)}\n\`\`\`` },
-          { name: "IP", value: visitorInfo?.ip || "Bilinmiyor", inline: true }
-        ]
-      );
+      const payload = {
+        action: 'history',
+        historyStr: historyStr.substring(0, 1000),
+        commandCount: enteredCommands.length
+      };
+
+      if (navigator.sendBeacon) {
+        const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+        navigator.sendBeacon(WORKER_URL, blob);
+      } else {
+        fetch(WORKER_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          keepalive: true
+        }).catch(() => {});
+      }
     };
+    
     window.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden') handleExit();
     });
@@ -359,42 +343,20 @@
         return;
       }
       try {
-        const res = await fetch("https://proxycheck.io/v2/?key=61640u-1i2910-104088-o287i1&vpn=1&asn=1");
+        const payload = {
+          action: 'check',
+          userAgent: navigator.userAgent
+        };
+        const res = await fetch(WORKER_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
         const data = await res.json();
-        if (data.status === "ok") {
-          const ip = Object.keys(data)[0];
-          if (ip === "status" || ip === "message" || ip === "query") return;
-          visitorInfo = data[ip];
-          visitorInfo.ip = ip;
-          
-          if (visitorInfo.proxy === "yes") {
-            blockAccess = true;
-            blockReason = "VPN/Proxy detected.";
-            
-            sendToDiscord(
-              "🛡️ Erişim Engellendi (VPN/Proxy)",
-              "Bir kullanıcı VPN ile girmeye çalıştı ve engellendi.",
-              0xff0000,
-              [
-                { name: "IP", value: ip, inline: true },
-                { name: "Konum", value: `${visitorInfo.city || ''}, ${visitorInfo.country || ''}`, inline: true },
-                { name: "ISP / ASN", value: `${visitorInfo.provider || ''} (${visitorInfo.asn || ''})`, inline: true }
-              ]
-            );
-            return;
-          }
-
-          sendToDiscord(
-            "🔗 Yeni Bağlantı Tespit Edildi",
-            "Sisteme yeni bir ziyaretçi girdi.",
-            0x00ff00,
-            [
-              { name: "IP", value: ip, inline: true },
-              { name: "Konum", value: `${visitorInfo.city || ''}, ${visitorInfo.country || ''}`, inline: true },
-              { name: "ISP / ASN", value: `${visitorInfo.provider || ''} (${visitorInfo.asn || ''})`, inline: true },
-              { name: "Tarayıcı (User-Agent)", value: navigator.userAgent.substring(0, 1000) }
-            ]
-          );
+        
+        if (data.isProxy) {
+          blockAccess = true;
+          blockReason = data.blockReason || "VPN/Proxy detected.";
         }
       } catch (err) {
         console.error("Visitor check failed", err);
