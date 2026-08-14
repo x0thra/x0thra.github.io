@@ -5,7 +5,6 @@
   let username = 'guest';
 
   const WORKER_URL = 'https://green-bread-f7b4.x0thra.workers.dev/';
-  const sessionId = 'x0thra-' + Math.random().toString(36).substring(2, 8);
 
   let commandHistory = [];
   let enteredCommands = [];
@@ -472,7 +471,6 @@
       const historyStr = enteredCommands.join(', ');
       const payload = {
         action: 'history',
-        sessionId,
         historyStr: historyStr.substring(0, 1000),
         commandCount: enteredCommands.length
       };
@@ -499,7 +497,6 @@
       try {
         const payload = {
           action: 'check',
-          sessionId,
           userAgent: navigator.userAgent
         };
         const res = await fetch(WORKER_URL, {
