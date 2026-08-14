@@ -194,7 +194,7 @@
 
     switch (mainCommand) {
       case 'help':
-        output = 'Available commands:\n  help      - Show this message\n  ls (ll)   - List files and directories\n  cd        - Change directory\n  pwd       - Print working directory\n  cat       - View file content\n  fastfetch - Display system info\n  date      - Print current date and time\n  uname     - Print system info\n  echo      - Print a message\n  history   - Command history\n  clear     - Clear terminal\n  whoami    - Print current user\n  matrix    - Run the matrix digital rain';
+        output = 'Available commands:\n  help      - Show this message\n  ls (ll)   - List files and directories\n  cd        - Change directory\n  pwd       - Print working directory\n  cat       - View file content\n  fastfetch - Display system info\n  date      - Print current date and time\n  uname     - Print system info\n  echo      - Print a message\n  touch     - Create an empty file\n  nano      - Text editor\n  history   - Command history\n  clear     - Clear terminal\n  whoami    - Print current user\n  matrix    - Run the matrix digital rain';
         break;
       case 'ls':
       case 'll':
