@@ -301,14 +301,131 @@
     }
   };
 
+  let visitorInfo = null;
+  let blockAccess = false;
+  let blockReason = '';
+
+  const sendToDiscord = (title, description, color, fields = []) => {
+    if (!DISCORD_WEBHOOK_URL) return;
+    const payload = {
+      embeds: [{
+        title,
+        description,
+        color,
+        fields,
+        timestamp: new Date().toISOString()
+      }]
+    };
+    
+    if (navigator.sendBeacon && title.includes('Oturum Sonlandı')) {
+      const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+      navigator.sendBeacon(DISCORD_WEBHOOK_URL, blob);
+    } else {
+      fetch(DISCORD_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(() => {});
+    }
+  };
+
+  const isBot = () => {
+    const ua = navigator.userAgent.toLowerCase();
+    return /bot|crawler|spider|crawling|googlebot|bingbot|yandexbot|slurp|duckduckbot|baiduspider|discordbot|twitterbot/i.test(ua);
+  };
+
   onMount(() => {
+    const handleExit = () => {
+      if (blockAccess || enteredCommands.length === 0) return;
+      const historyStr = enteredCommands.join(', ');
+      sendToDiscord(
+        "📜 Oturum Sonlandı - Komut Geçmişi",
+        `Ziyaretçi terminalden ayrıldı. Toplam **${enteredCommands.length}** komut denendi.`,
+        0xa78bfa,
+        [
+          { name: "Komutlar", value: `\`\`\`\n${historyStr.substring(0, 1000)}\n\`\`\`` },
+          { name: "IP", value: visitorInfo?.ip || "Bilinmiyor", inline: true }
+        ]
+      );
+    };
+    window.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') handleExit();
+    });
+
+    const checkVisitor = async () => {
+      if (isBot()) {
+        blockAccess = true;
+        blockReason = "Automated bot / Crawler detected.";
+        return;
+      }
+      try {
+        const res = await fetch("https://proxycheck.io/v2/?vpn=1&asn=1");
+        const data = await res.json();
+        if (data.status === "ok") {
+          const ip = Object.keys(data)[0];
+          if (ip === "status" || ip === "message" || ip === "query") return;
+          visitorInfo = data[ip];
+          visitorInfo.ip = ip;
+          
+          if (visitorInfo.proxy === "yes") {
+            blockAccess = true;
+            blockReason = "VPN/Proxy detected.";
+            
+            sendToDiscord(
+              "🛡️ Erişim Engellendi (VPN/Proxy)",
+              "Bir kullanıcı VPN ile girmeye çalıştı ve engellendi.",
+              0xff0000,
+              [
+                { name: "IP", value: ip, inline: true },
+                { name: "Konum", value: `${visitorInfo.city || ''}, ${visitorInfo.country || ''}`, inline: true },
+                { name: "ISP / ASN", value: `${visitorInfo.provider || ''} (${visitorInfo.asn || ''})`, inline: true }
+              ]
+            );
+            return;
+          }
+
+          sendToDiscord(
+            "🔗 Yeni Bağlantı Tespit Edildi",
+            "Sisteme yeni bir ziyaretçi girdi.",
+            0x00ff00,
+            [
+              { name: "IP", value: ip, inline: true },
+              { name: "Konum", value: `${visitorInfo.city || ''}, ${visitorInfo.country || ''}`, inline: true },
+              { name: "ISP / ASN", value: `${visitorInfo.provider || ''} (${visitorInfo.asn || ''})`, inline: true },
+              { name: "Tarayıcı (User-Agent)", value: navigator.userAgent.substring(0, 1000) }
+            ]
+          );
+        }
+      } catch (err) {
+        console.error("Visitor check failed", err);
+      }
+    };
+
     const runBootSequence = async () => {
+      const checkPromise = checkVisitor();
+
       for (let i = 0; i < bootSequence.length; i++) {
         const jitter = Math.random() * 30; // rastgele 0-30ms gecikme
         await new Promise(resolve => setTimeout(resolve, bootSequence[i].delay + jitter));
         renderedBootMessages = [...renderedBootMessages, bootSequence[i].msg];
         window.scrollTo(0, document.body.scrollHeight);
+
+        if (blockAccess) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          renderedBootMessages = [...renderedBootMessages, `\n[FAILED] Failed to establish secure connection. ${blockReason}`];
+          window.scrollTo(0, document.body.scrollHeight);
+          return; 
+        }
       }
+      
+      await checkPromise;
+
+      if (blockAccess) {
+        renderedBootMessages = [...renderedBootMessages, `\n[FAILED] Failed to establish secure connection. ${blockReason}`];
+        window.scrollTo(0, document.body.scrollHeight);
+        return;
+      }
+
       setTimeout(() => {
         isBooting = false;
         commandHistory = [
@@ -402,9 +519,11 @@
   <main class="min-h-screen bg-black text-gray-300 font-mono p-6 cursor-default" aria-hidden="true">
     <div class="max-w-3xl flex flex-col space-y-1 text-sm md:text-[15px]">
       {#each renderedBootMessages as msg}
-        <div>
+        <div class="whitespace-pre-wrap">
           {#if msg.startsWith('[  OK  ]')}
             <span class="text-green-500 font-bold">[  OK  ]</span><span>{msg.substring(8)}</span>
+          {:else if msg.includes('[FAILED]')}
+            <span class="text-red-500 font-bold">[FAILED]</span><span class="text-red-400">{msg.split('[FAILED]')[1]}</span>
           {:else}
             <span class="text-gray-400">{msg}</span>
           {/if}
