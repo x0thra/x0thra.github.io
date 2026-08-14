@@ -207,7 +207,7 @@
         break;
       case 'cd':
         const targetDir = args[1];
-        if (!targetDir || targetDir === '~') {
+        if (!targetDir || targetDir === '~' || targetDir === '/home/guest') {
           currentPath = ['~'];
         } else if (targetDir === '..') {
           if (currentPath.length > 1) {
@@ -227,7 +227,11 @@
         }
         break;
       case 'pwd':
-        output = '/' + (currentPath.length > 1 ? currentPath.slice(1).join('/') : '');
+        if (currentPath[0] === '~') {
+          output = '/home/guest' + (currentPath.length > 1 ? '/' + currentPath.slice(1).join('/') : '');
+        } else {
+          output = '/' + (currentPath.length > 1 ? currentPath.slice(1).join('/') : '');
+        }
         break;
       case 'cat':
       case 'view':
