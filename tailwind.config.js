@@ -9,7 +9,7 @@ export default {
       colors: {
         'terminal-black': '#050505',
         'terminal-dark': '#0a0a0a',
-        'terminal-purple': '#333344', /* Very muted, cold, almost gray-purple */
+        'terminal-purple': '#333344',
         'terminal-purple-light': '#666677',
         'glass-bg': 'rgba(10, 10, 10, 0.4)',
         'glass-border': 'rgba(255, 255, 255, 0.05)',

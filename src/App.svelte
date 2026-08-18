@@ -505,7 +505,7 @@
     });
     window.addEventListener('pagehide', handleExit);
 
-    const checkVisitor = async () => {
+  const checkVisitor = async () => {
       if (isBot()) {
         blockAccess = true;
         blockReason = "Automated bot / Crawler detected.";
@@ -536,7 +536,7 @@
       const checkPromise = checkVisitor();
 
       for (let i = 0; i < bootSequence.length; i++) {
-        const jitter = Math.random() * 30; // rastgele 0-30ms gecikme
+        const jitter = Math.random() * 30;
         await new Promise(resolve => setTimeout(resolve, bootSequence[i].delay + jitter));
         renderedBootMessages = [...renderedBootMessages, bootSequence[i].msg];
         window.scrollTo(0, document.body.scrollHeight);
