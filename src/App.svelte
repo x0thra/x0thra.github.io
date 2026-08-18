@@ -252,14 +252,8 @@
       case 'cowsay':
         const textToSay = args.slice(1).join(' ') || "Moo";
         const borderLine = '-'.repeat(textToSay.length + 2);
-        output = ` ${'_'.repeat(textToSay.length + 2)}
-< ${textToSay} >
- ${borderLine}
-        \\   ^__^
-         \\  (oo)\\_______
-            (__)\\       )\\/\\
-                ||----w |
-                ||     ||`;
+        output = `<div class="overflow-x-auto whitespace-pre pb-2"> ${'_'.repeat(textToSay.length + 2)}\n< ${textToSay} >\n ${borderLine}\n        \\   ^__^\n         \\  (oo)\\_______\n            (__)\\       )\\/\\\n                ||----w |\n                ||     ||</div>`;
+        isHtml = true;
         break;
       case 'ls':
       case 'll':
@@ -610,7 +604,7 @@
 {/if}
 
 {#if isBooting}
-  <main class="min-h-screen bg-black text-gray-300 font-mono p-6 cursor-default" aria-hidden="true">
+  <main class="min-h-screen bg-black text-gray-300 font-mono p-3 sm:p-6 cursor-default w-full overflow-x-hidden" aria-hidden="true">
     <div class="max-w-3xl flex flex-col space-y-1 text-sm md:text-[15px]">
       {#each renderedBootMessages as msg}
         <div class="whitespace-pre-wrap">
@@ -646,10 +640,10 @@
     </div>
   </main>
 {:else}
-  <main class="min-h-screen bg-black text-gray-300 font-mono p-6 selection:bg-purple-900 selection:text-white flex flex-col" on:click={focusInput} aria-hidden="true">
-    <div bind:this={terminalContainer} class="flex-1 w-full overflow-y-auto whitespace-pre-wrap text-sm md:text-[15px] leading-relaxed cursor-text pb-10">
+  <main class="min-h-screen bg-black text-gray-300 font-mono p-3 sm:p-6 selection:bg-purple-900 selection:text-white flex flex-col w-full overflow-x-hidden" on:click={focusInput} aria-hidden="true">
+    <div bind:this={terminalContainer} class="flex-1 w-full overflow-y-auto overflow-x-auto whitespace-pre-wrap break-words text-[13px] sm:text-sm md:text-[15px] leading-normal md:leading-relaxed cursor-text pb-10">
       {#each commandHistory as line}
-        <div class="mb-3">
+        <div class="mb-1 sm:mb-2">
           {#if line.type === 'command'}
             <span class="text-[#a78bfa]">{line.text}</span>
           {:else if line.isHtml}
@@ -660,14 +654,14 @@
         </div>
       {/each}
 
-      <div class="flex items-center mt-3">
-        <span class="text-[#a78bfa] mr-3 whitespace-nowrap">{username}@x0thra.github.io:{'/' + currentPath.join('/') === '/home/guest' ? '~' : '/' + currentPath.join('/')}$</span>
+      <div class="flex flex-wrap sm:flex-nowrap items-center mt-1 sm:mt-3">
+        <span class="text-[#a78bfa] mr-2 sm:mr-3 break-all sm:break-normal">{username}@x0thra.github.io:{'/' + currentPath.join('/') === '/home/guest' ? '~' : '/' + currentPath.join('/')}$</span>
         <input 
           bind:this={inputElement}
           bind:value={currentInput}
           on:keydown={onKeyDown}
           type="text" 
-          class="flex-1 bg-transparent outline-none border-none text-gray-300 focus:ring-0 p-0 m-0 shadow-none caret-[#a78bfa]"
+          class="flex-1 min-w-[150px] bg-transparent outline-none border-none text-gray-300 focus:ring-0 p-0 m-0 shadow-none caret-[#a78bfa]"
           spellcheck="false"
           autocomplete="off"
         />
