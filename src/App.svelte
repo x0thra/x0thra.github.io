@@ -71,12 +71,12 @@
         'README.txt': { 
           type: 'file', 
           isSystem: true, 
-          text: 'This is not a real Linux system. Usable commands are limited to those listed under the "help" command.\n\nFiles relating to x0thra are stored in /home/x0thra.\nIf you create your own files, they are stored securely in your browser\'s local storage and will appear under /home/guest.\n\nEnjoy exploring the terminal!'
+          text: 'Well. Just so you know, this isn\'t a real linux environmet and the terminal isnt connected to anyware. This is just a fun website concept. Usable commands are limited to those listed under the "help" command.\n\nFiles relating to me are stored in /home/x0thra.\nIf you create your own files, they will appear under /home/guest.\n\nEnjoy exploring the terminal!'
         },
         'privacy.txt': {
           type: 'file',
           isSystem: true,
-          text: 'Privacy Policy\n\n1. No IP addresses are logged or stored.\n2. We do not track or fingerprint clean users.\n3. No cookies are used.\n4. Security measures only exist to detect and deflect malicious proxies, VPNs, or bots.\n5. What you type here stays in your browser\'s local storage unless it triggers a security alert.\n\nStay safe.'
+          text: 'Your Privacy\n\nHello, this is my ultimate hacking malware spyware badware tool and i\'m already in your PC!\n\nJust kidding of course.\nThis website only collects your IP once you log into the website and the IP address is only used for detecting VPN/Proxy users for possible stalking by bad people.\nThe files you created and the text inside them are actually stored on your own browser and not in a server, since this is a static website. That means I also can\'t see or know what you wrote.\n\nWell thats all. Keep checking stuff inside!'
         },
         'home': {
           type: 'dir',
