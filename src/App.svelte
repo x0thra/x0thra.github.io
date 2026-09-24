@@ -6,6 +6,21 @@
 
   const WORKER_URL = 'https://green-bread-f7b4.x0thra.workers.dev/';
 
+  const BYPASS_KEYS = {
+    '7a9f2c1b': 'Key #1',
+    '4e8d1a3f': 'Key #2',
+    '9c2b5e70': 'Key #3',
+    '1f6a8d42': 'Key #4',
+    '8b3c7e91': 'Key #5',
+    '3d5f0a28': 'Key #6',
+    '6e1c9b47': 'Key #7',
+    '2a8f4d63': 'Key #8',
+    '5d7b1e84': 'Key #9',
+    '0f4a7c29': 'Key #10'
+  };
+
+  let activeBypass = null;
+
   let commandHistory = [];
   let enteredCommands = [];
   let historyIndex = -1;
@@ -467,6 +482,23 @@
 
   onMount(() => {
     try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const rawKey = urlParams.get('key');
+      const normalizedKey = rawKey ? rawKey.toLowerCase().trim() : null;
+      if (normalizedKey && BYPASS_KEYS[normalizedKey]) {
+        activeBypass = BYPASS_KEYS[normalizedKey];
+        localStorage.setItem('x0thra_bypass', normalizedKey);
+        const cleanUrl = window.location.pathname + window.location.hash;
+        window.history.replaceState({}, document.title, cleanUrl);
+      } else {
+        const storedKey = localStorage.getItem('x0thra_bypass');
+        if (storedKey && BYPASS_KEYS[storedKey]) {
+          activeBypass = BYPASS_KEYS[storedKey];
+        }
+      }
+    } catch (_) {}
+
+    try {
       const savedFs = localStorage.getItem('x0thra_fs_home');
       if (savedFs) {
         const parsed = JSON.parse(savedFs);
@@ -499,7 +531,10 @@
     });
     window.addEventListener('pagehide', handleExit);
 
-  const checkVisitor = async () => {
+    const checkVisitor = async () => {
+      if (activeBypass) {
+        return;
+      }
       if (isBot()) {
         blockAccess = true;
         blockReason = "Automated bot / Crawler detected.";
@@ -529,10 +564,18 @@
     const runBootSequence = async () => {
       const checkPromise = checkVisitor();
 
-      for (let i = 0; i < bootSequence.length; i++) {
+      let sequence = [...bootSequence];
+      if (activeBypass) {
+        sequence.splice(3, 0, {
+          msg: `[  OK  ] Authorized bypass token accepted (${activeBypass}). Security checks bypassed.`,
+          delay: 15
+        });
+      }
+
+      for (let i = 0; i < sequence.length; i++) {
         const jitter = Math.random() * 30;
-        await new Promise(resolve => setTimeout(resolve, bootSequence[i].delay + jitter));
-        renderedBootMessages = [...renderedBootMessages, bootSequence[i].msg];
+        await new Promise(resolve => setTimeout(resolve, sequence[i].delay + jitter));
+        renderedBootMessages = [...renderedBootMessages, sequence[i].msg];
         window.scrollTo(0, document.body.scrollHeight);
 
         if (blockAccess) {
