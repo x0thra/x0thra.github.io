@@ -10,8 +10,6 @@
   } from './lib/sound.js';
 
   const WORKER_URL = 'https://green-bread-f7b4.x0thra.workers.dev/';
-  const CACHE_KEY = 'x0thra_sec_state';
-  const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
 
   let hasStarted = $state(false);
   let isTerminated = $state(false);
@@ -37,42 +35,13 @@
     return /bot|crawler|spider|crawling|googlebot|bingbot|slurp|duckduckbot|baiduspider|discordbot|twitterbot/i.test(ua);
   }
 
-  function readCachedTrustState() {
-    try {
-      const raw = localStorage.getItem(CACHE_KEY);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw);
-      if (
-        parsed &&
-        typeof parsed.trusted === 'boolean' &&
-        typeof parsed.ts === 'number' &&
-        Date.now() - parsed.ts < CACHE_TTL_MS
-      ) {
-        return parsed.trusted;
-      }
-    } catch {}
-    return null;
-  }
-
-  function writeCachedTrustState(trusted) {
-    try {
-      localStorage.setItem(
-        CACHE_KEY,
-        JSON.stringify({ trusted, ts: Date.now() })
-      );
-    } catch {}
-  }
-
   async function verifyVisitorOnce() {
+    try {
+      localStorage.removeItem('x0thra_sec_state');
+    } catch {}
+
     if (isBotUserAgent()) {
       isTrustedVisitor = false;
-      writeCachedTrustState(false);
-      return;
-    }
-
-    const cached = readCachedTrustState();
-    if (cached !== null) {
-      isTrustedVisitor = cached;
       return;
     }
 
@@ -87,7 +56,6 @@
       });
       const data = await response.json();
       isTrustedVisitor = !(data && data.isProxy);
-      writeCachedTrustState(isTrustedVisitor);
     } catch {
       // Keep default trust state if the worker is unreachable
     }
