@@ -12,6 +12,9 @@
   const WORKER_URL = 'https://green-bread-f7b4.x0thra.workers.dev/';
 
   let hasStarted = $state(false);
+  let isBooting = $state(false);
+  let awaitingMobileConfirm = $state(false);
+  let renderedBootLines = $state([]);
   let isTerminated = $state(false);
   let isAsciiPanel = $state(false);
   let displayedText = $state('');
@@ -20,6 +23,8 @@
   let currentOptions = $state([]);
   let selectedOptionIndex = $state(0);
   let justLookingUsed = $state(false);
+  let lookLeftUsed = $state(false);
+  let lookRightUsed = $state(false);
   let untrustedLocked = $state(false);
 
   let isTrustedVisitor = true;
@@ -33,6 +38,15 @@
     if (typeof navigator === 'undefined') return false;
     const ua = navigator.userAgent.toLowerCase();
     return /bot|crawler|spider|crawling|googlebot|bingbot|slurp|duckduckbot|baiduspider|discordbot|twitterbot/i.test(ua);
+  }
+
+  function isMobileDevice() {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+    return (
+      /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i.test(
+        navigator.userAgent
+      ) || window.innerWidth < 768
+    );
   }
 
   async function verifyVisitorOnce() {
@@ -185,7 +199,8 @@
         disabled: justLookingUsed
       },
       { id: 'what_is_this', label: DIALOGUE_STRINGS.options.whatIsThis },
-      { id: 'dont_know', label: DIALOGUE_STRINGS.options.dontKnow }
+      { id: 'dont_know', label: DIALOGUE_STRINGS.options.dontKnow },
+      { id: 'system_info', label: DIALOGUE_STRINGS.options.systemInfo }
     ]);
   }
 
@@ -262,19 +277,100 @@
     });
     if (!completed) return;
 
-    setOptions([{ id: 'go_back', label: DIALOGUE_STRINGS.options.goBack }]);
+    setOptions([
+      { id: 'system_info', label: DIALOGUE_STRINGS.options.systemInfo },
+      { id: 'go_back', label: DIALOGUE_STRINGS.options.goBack }
+    ]);
+  }
+
+  async function handleSystemInfo() {
+    const runId = ++activeRunId;
+    const completed = await typeText(DIALOGUE_STRINGS.systemInfoContent, {
+      speed: 14,
+      asciiPanel: true,
+      runId
+    });
+    if (!completed) return;
+
+    setOptions([
+      { id: 'view_source', label: DIALOGUE_STRINGS.options.viewSource },
+      { id: 'go_back', label: DIALOGUE_STRINGS.options.goBack }
+    ]);
+  }
+
+  function showLookAroundOptions() {
+    setOptions([
+      {
+        id: 'look_left',
+        label: DIALOGUE_STRINGS.options.lookLeft,
+        disabled: lookLeftUsed
+      },
+      {
+        id: 'look_right',
+        label: DIALOGUE_STRINGS.options.lookRight,
+        disabled: lookRightUsed
+      },
+      {
+        id: 'look_behind',
+        label: DIALOGUE_STRINGS.options.lookBehind
+      }
+    ]);
   }
 
   async function handleJustLookingAround() {
     justLookingUsed = true;
     const runId = ++activeRunId;
-    const completed = await typeText(DIALOGUE_STRINGS.lookingAroundResponse, {
-      speed: 36,
+    const completed = await typeText(DIALOGUE_STRINGS.lookingAroundIntro, {
+      speed: 34,
       runId
     });
     if (!completed) return;
 
-    await sleep(10000);
+    showLookAroundOptions();
+  }
+
+  async function handleLookDirection(direction) {
+    const runId = ++activeRunId;
+
+    if (direction === 'left') {
+      lookLeftUsed = true;
+      const completed = await typeText(DIALOGUE_STRINGS.lookLeftResponse, {
+        speed: 34,
+        runId
+      });
+      if (!completed) return;
+      showLookAroundOptions();
+      return;
+    }
+
+    if (direction === 'right') {
+      lookRightUsed = true;
+      const completed = await typeText(DIALOGUE_STRINGS.lookRightResponse, {
+        speed: 34,
+        runId
+      });
+      if (!completed) return;
+      showLookAroundOptions();
+      return;
+    }
+
+    playDistrustSound();
+    const suspenseDone = await typeText(DIALOGUE_STRINGS.lookBehindSuspense, {
+      speed: 220,
+      runId
+    });
+    if (!suspenseDone) return;
+
+    await sleep(2000);
+    if (runId !== activeRunId) return;
+
+    const followupDone = await typeText(DIALOGUE_STRINGS.lookBehindFollowup, {
+      speed: 34,
+      runId
+    });
+    if (!followupDone) return;
+
+    await sleep(1800);
     if (runId !== activeRunId) return;
     await showRootQuestion();
   }
@@ -322,8 +418,27 @@
       case 'just_looking':
         handleJustLookingAround();
         break;
+      case 'look_left':
+        handleLookDirection('left');
+        break;
+      case 'look_right':
+        handleLookDirection('right');
+        break;
+      case 'look_behind':
+        handleLookDirection('behind');
+        break;
       case 'what_is_this':
         handleWhatIsThisPlace();
+        break;
+      case 'system_info':
+        handleSystemInfo();
+        break;
+      case 'view_source':
+        window.open(DIALOGUE_STRINGS.sourceRepoUrl, '_blank', 'noopener,noreferrer');
+        setOptions([
+          { id: 'view_source', label: DIALOGUE_STRINGS.options.viewSource },
+          { id: 'go_back', label: DIALOGUE_STRINGS.options.goBack }
+        ]);
         break;
       case 'dont_know':
         handleDontKnow();
@@ -340,16 +455,125 @@
     }
   }
 
-  function startSession() {
-    if (hasStarted || isTerminated) return;
+  async function typeBootLine(text, runId) {
+    const lineIdx = renderedBootLines.length;
+    renderedBootLines = [...renderedBootLines, ''];
+
+    for (const char of text) {
+      if (runId !== activeRunId) return false;
+      renderedBootLines[lineIdx] += char;
+      playTypeSound(char);
+      await sleep(22 + Math.random() * 12);
+    }
+    return true;
+  }
+
+  async function finishBootToRoot(runId) {
+    const ok = await typeBootLine(DIALOGUE_STRINGS.bootConnected, runId);
+    if (!ok) return;
+
+    await sleep(400);
+    if (runId !== activeRunId) return;
+
+    renderedBootLines = [];
+    await sleep(200);
+    if (runId !== activeRunId) return;
+
+    isBooting = false;
+    showRootQuestion();
+  }
+
+  async function handleMobileChoice(choice) {
+    if (!awaitingMobileConfirm || isTerminated) return;
+    awaitingMobileConfirm = false;
+    playSelectSound();
+
+    const runId = ++activeRunId;
+    const lastIdx = renderedBootLines.length - 1;
+    renderedBootLines[lastIdx] += ` ${choice}`;
+
+    if (choice === 'Y') {
+      choiceHistory.push('Mobile Warning: Y');
+      await sleep(250);
+      if (runId !== activeRunId) return;
+      renderedBootLines = [...renderedBootLines, ''];
+      await finishBootToRoot(runId);
+      return;
+    }
+
+    choiceHistory.push('Mobile Warning: N');
+    await sleep(200);
+    if (runId !== activeRunId) return;
+
+    renderedBootLines = [...renderedBootLines, ''];
+    const abortedOk = await typeBootLine(DIALOGUE_STRINGS.bootAborted, runId);
+    if (!abortedOk) return;
+
+    flushTelemetry();
+    await sleep(600);
+
+    isTerminated = true;
+    try {
+      window.close();
+    } catch {}
+
+    setTimeout(() => {
+      try {
+        window.location.replace('about:blank');
+      } catch {}
+    }, 180);
+  }
+
+  async function startSession() {
+    if (hasStarted || isBooting || isTerminated) return;
     hasStarted = true;
+    isBooting = true;
+    awaitingMobileConfirm = false;
+    renderedBootLines = [];
+
     unlockAudio();
     playSelectSound();
-    showRootQuestion();
+
+    const runId = ++activeRunId;
+    await sleep(120);
+
+    for (let i = 0; i < DIALOGUE_STRINGS.bootSteps.length; i++) {
+      const step = DIALOGUE_STRINGS.bootSteps[i];
+      const ok = await typeBootLine(step.text, runId);
+      if (!ok) return;
+      await sleep(step.delay);
+    }
+
+    if (isMobileDevice()) {
+      renderedBootLines = [...renderedBootLines, ''];
+      for (const line of DIALOGUE_STRINGS.mobileWarningLines) {
+        const ok = await typeBootLine(line, runId);
+        if (!ok) return;
+        await sleep(180);
+      }
+      if (runId !== activeRunId) return;
+      awaitingMobileConfirm = true;
+      return;
+    }
+
+    await finishBootToRoot(runId);
   }
 
   function handleWindowKeyDown(e) {
     if (isTerminated) return;
+
+    if (awaitingMobileConfirm) {
+      if (e.key === 'y' || e.key === 'Y') {
+        e.preventDefault();
+        handleMobileChoice('Y');
+      } else if (e.key === 'n' || e.key === 'N') {
+        e.preventDefault();
+        handleMobileChoice('N');
+      }
+      return;
+    }
+
+    if (isBooting) return;
 
     if (!hasStarted) {
       if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta') {
@@ -420,13 +644,42 @@
     <button
       type="button"
       onclick={startSession}
-      class="min-h-screen w-full bg-black flex items-center justify-center p-6 cursor-pointer border-none focus:outline-none"
-      aria-label="Start"
+      class="min-h-screen w-full bg-black flex items-start justify-start p-4 sm:p-6 cursor-pointer border-none focus:outline-none text-left"
+      aria-label="Boot system"
     >
-      <span class="neon-text-dim hover:text-white transition-colors text-sm">
-        {DIALOGUE_STRINGS.connectPrompt}
+      <span class="neon-text-dim hover:text-white transition-colors text-xs sm:text-sm">
+        {DIALOGUE_STRINGS.connectPrompt}<span class="terminal-cursor ml-1"></span>
       </span>
     </button>
+  </main>
+{:else if isBooting}
+  <main class="min-h-screen w-full bg-black flex flex-col items-start justify-start p-4 sm:p-6">
+    <div class="flex flex-col space-y-1 text-xs sm:text-sm neon-text">
+      {#each renderedBootLines as line, idx}
+        <div class="min-h-[1.25rem]">
+          <span>{line}</span>{#if idx === renderedBootLines.length - 1}<span class="terminal-cursor ml-0.5"></span>{/if}
+        </div>
+      {/each}
+
+      {#if awaitingMobileConfirm}
+        <div class="flex items-center gap-6 pt-3">
+          <button
+            type="button"
+            onclick={() => handleMobileChoice('Y')}
+            class="neon-text hover:underline py-1 px-2 border border-white/30 bg-white/[0.04] focus:outline-none"
+          >
+            [ Y ]
+          </button>
+          <button
+            type="button"
+            onclick={() => handleMobileChoice('N')}
+            class="neon-text-dim hover:text-white hover:underline py-1 px-2 border border-white/20 focus:outline-none"
+          >
+            [ N ]
+          </button>
+        </div>
+      {/if}
+    </div>
   </main>
 {:else}
   <main class="min-h-screen w-full bg-black flex flex-col justify-center items-center p-6 sm:p-12">
